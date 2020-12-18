@@ -1,4 +1,4 @@
-const grammars = (s = '') => [...new Set(s.split(''))]
+const grammars = (s = []) => [...new Set(s)]
 const accumulate = (grammar, arr, offset = 0, start = [0, 0]) => []
   .concat(arr)
   .map(g => {
