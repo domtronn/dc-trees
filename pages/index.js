@@ -7,8 +7,6 @@ import { generate } from '../utils/generate-grammar'
 import { jsx } from '@emotion/core'
 import { mix } from 'polished'
 
-import Controls from './controls.jsx'
-
 const col = (s, m, e) => (i, arr) => {
   const limit = 7
   return i < limit
