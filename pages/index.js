@@ -1,203 +1,124 @@
+/** @jsx jsx */
 import Head from 'next/head'
 
-const Home = () => (
-  <div className="container">
-    <Head>
-      <title>Create Next App</title>
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
+import { generate } from '../utils/generate-grammar'
+import { jsx } from '@emotion/core'
+import { mix } from 'polished'
 
-    <main>
-      <h1 className="title">
-        Welcome to <a href="https://nextjs.org">Next.js!</a>
-      </h1>
+import { IoFlower } from 'react-icons/io5'
 
-      <p className="description">
-        Get started by editing <code>pages/index.js</code>
-      </p>
+const grammar = {
+  a: {
+    next: 'bc',
+    length: 50,
+    rotation: 3 * Math.PI / 11
+  },
 
-      <div className="grid">
-        <a href="https://nextjs.org/docs" className="card">
-          <h3>Documentation &rarr;</h3>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+  b: {
+    next: 'bd',
+    length: 32,
+    rotation: Math.PI / 8
+  },
 
-        <a href="https://nextjs.org/learn" className="card">
-          <h3>Learn &rarr;</h3>
-          <p>Learn about Next.js in an interactive course with quizzes!</p>
-        </a>
+  c: {
+    next: 'abc',
+    length: 80,
+    rotation: -Math.PI / 12
+  },
 
-        <a
-          href="https://github.com/zeit/next.js/tree/master/examples"
-          className="card"
-        >
-          <h3>Examples &rarr;</h3>
-          <p>Discover and deploy boilerplate example Next.js projects.</p>
-        </a>
+  d: {
+    next: 'dc',
+    length: 64,
+    rotation: 0
+  }
+}
 
-        <a
-          href="https://vercel.com/new?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          className="card"
-        >
-          <h3>Deploy &rarr;</h3>
-          <p>
-            Instantly deploy your Next.js site to a public URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+const col = (s, m, e) => (i, arr) => {
+  const limit = 7
+  return i < limit
+    ? mix(i / (limit - 1), m, s)
+    : mix((i - limit) / (arr.length - limit), e, m)
+}
 
-    <footer>
-      <a
-        href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Powered by <img src="/vercel.svg" alt="Vercel Logo" />
-      </a>
-    </footer>
+const cStart = '#432818'
+const cMid = '#ebddd7'
+const cEnd = '#ebddd7'
 
-    <style jsx>{`
-      .container {
-        min-height: 100vh;
-        padding: 0 0.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
+const treecol = col(cStart, cMid, cEnd)
 
-      main {
-        padding: 5rem 0;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
-
-      footer {
-        width: 100%;
-        height: 100px;
-        border-top: 1px solid #eaeaea;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      footer img {
-        margin-left: 0.5rem;
-      }
-
-      footer a {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
-
-      .title a {
-        color: #0070f3;
-        text-decoration: none;
-      }
-
-      .title a:hover,
-      .title a:focus,
-      .title a:active {
-        text-decoration: underline;
-      }
-
-      .title {
-        margin: 0;
-        line-height: 1.15;
-        font-size: 4rem;
-      }
-
-      .title,
-      .description {
-        text-align: center;
-      }
-
-      .description {
-        line-height: 1.5;
-        font-size: 1.5rem;
-      }
-
-      code {
-        background: #fafafa;
-        border-radius: 5px;
-        padding: 0.75rem;
-        font-size: 1.1rem;
-        font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-          DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-      }
-
-      .grid {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-
-        max-width: 800px;
-        margin-top: 3rem;
-      }
-
-      .card {
-        margin: 1rem;
-        flex-basis: 45%;
-        padding: 1.5rem;
-        text-align: left;
-        color: inherit;
-        text-decoration: none;
-        border: 1px solid #eaeaea;
-        border-radius: 10px;
-        transition: color 0.15s ease, border-color 0.15s ease;
-      }
-
-      .card:hover,
-      .card:focus,
-      .card:active {
-        color: #0070f3;
-        border-color: #0070f3;
-      }
-
-      .card h3 {
-        margin: 0 0 1rem 0;
-        font-size: 1.5rem;
-      }
-
-      .card p {
-        margin: 0;
-        font-size: 1.25rem;
-        line-height: 1.5;
-      }
-
-      @media (max-width: 600px) {
-        .grid {
-          width: 100%;
-          flex-direction: column;
+const Home = ({ data }) => (
+  <div
+    css={{
+      position: 'relative'
+    }}
+  >
+    <style>
+      {`
+        body { margin: 0; }
+        .tree { margin-bottom: -180px; z-index: 5; position: relative; }
+        .tree path, .flower {
+          transform-origin: 500px 500px;
+          transform: rotate(${grammar.a.rotation}rad);
         }
-      }
-    `}</style>
+      `}
+    </style>
+    <div
+      style={{ position: 'relative' }}
+    >
+      <svg className='tree' viewBox='0 0 1000 500'>
+        <defs>
+          <filter id='gooey'>
+            <feGaussianBlur in='SourceGraphic' result='blur' />
+            <feColorMatrix in='blur' mode='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 21 -9' result='cm' />
+          </filter>
+        </defs>
+        {
+          data
+            .map((layer, l, arr) => layer.map(({ start, end }, i) => (
+              <path
+                key={`${l}--${i}`}
+                stroke={treecol(l, arr)}
+                strokeWidth={arr.length + 1 - l}
+                d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
+              />
+            )))
+        }
+        
+        {
+          data
+            .slice(-1)
+            .map((layer, l) => layer.map(({ end }, i) => (
+              <image
+                href={`flower-1.svg`}
+                height={(Math.random() * 4) + 13}
+                x={end[0] - 8}
+                y={end[1] - 8}
+                className='flower'
+              />
+            )))
+        }
+        
+      </svg>
+    </div>
+    
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
+      <path
+        fill="#5d6e1e"
+        d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
+      >
+      </path>
+    </svg>
+    
 
-    <style jsx global>{`
-      html,
-      body {
-        padding: 0;
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-          Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-    `}</style>
   </div>
 )
+
+export async function getStaticProps () {
+  const layers = 7
+  const start = 'a'
+
+  const data = generate(grammar, layers, start, [500, 500])
+  return { props: { data } }
+}
 
 export default Home
