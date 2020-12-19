@@ -7,6 +7,8 @@ import { generate } from '../utils/generate-grammar'
 import { jsx } from '@emotion/core'
 import { mix } from 'polished'
 
+import Controls from '../components/controls'
+
 const col = (s, m, e) => (i, arr) => {
   const limit = 7
   return i < limit
@@ -21,6 +23,8 @@ const cEnd = '#ebddd7'
 const treecol = col(cStart, cMid, cEnd)
 
 const Home = ({ grammar, layers, start }) => {
+  const [debug, setDebug] = useState(false)
+  const [rotation, setRotation] = useState(grammar[start].rotation)
   const [data, setData] = useState(
     generate(grammar, layers, start, [500, 500])
   )
@@ -42,31 +46,82 @@ const Home = ({ grammar, layers, start }) => {
       }}
     >
 
-      {/* <Controls */}
-      {/*   grammar={grammar} */}
-      {/*   onChange={newGrammar => { */}
-      {/*     setData( */}
-      {/*       generate(newGrammar, layers, start, [500, 500]) */}
-      {/*     ) */}
-      {/*   }} */}
-      {/* /> */}
+      <Controls
+        grammar={grammar}
+        onChange={newGrammar => {
+          setRotation(newGrammar[start].rotation)
+          setData(
+            generate(newGrammar, layers, start, [500, 500])
+          )
+        }}
+      />
+
+      <button
+        onClick={_ => {
+          ;[...document.querySelectorAll('.branch')]
+            .forEach(p => {
+              p.style.transitionDuration = '0s'
+              p.style.transitionDelay = '0s'
+              p.style.strokeDashoffset = p.getAttribute('data-length')
+            })
+
+          ;[...document.querySelectorAll('.flower')]
+            .forEach(p => {
+              p.style.transitionDuration = '0s'
+              p.style.transitionDelay = '0s'
+              p.style.opacity = 0
+            })
+
+          setTimeout(_ => {
+            [...document.querySelectorAll('.branch')]
+              .forEach(p => {
+                p.style.transitionDuration = '0.3s'
+                p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
+                p.style.strokeDashoffset = 0
+              })
+            ;[...document.querySelectorAll('.flower')]
+            .forEach(p => {
+              p.style.transitionDuration = '0.2s'
+              p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
+              p.style.opacity = 1
+            })
+          }, 1)
+        }}
+      >
+        Animate
+      </button>
+      <button
+        onClick={_ => setDebug(!debug)}
+      >
+        Toggle debug
+      </button>
 
       <style>
         {`
         input { display: block; }
         body { margin: 0; }
-        .tree { margin-bottom: -180px; z-index: 5; position: relative; }
+        .tree { margin-bottom: -580px; z-index: 5; position: relative; }
         .tree path, .flower {
-          transform-origin: 500px 500px;
-          transform: rotate(${grammar.a.rotation}rad);
+          transform-origin: 200px 600px;
         }
         .flower { opacity: 0; }
+
+        .debug .flower { display: none; }
+        .debug path[data-g="a"] { stroke: #ff595e !important; }
+        .debug path[data-g="b"] { stroke: #ffca3a !important; }
+        .debug path[data-g="c"] { stroke: #8ac926 !important; }
+        .debug path[data-g="d"] { stroke: #1982c4 !important; }
+        .debug path[data-g="e"] { stroke: #6a4c93 !important; }
       `}
       </style>
       <div
         style={{ position: 'relative' }}
       >
-        <svg className='tree' viewBox='0 0 1000 500'>
+        <svg
+          style={{
+            transform: `rotate(${rotation}rad)`
+          }}
+          className={`tree ${debug ? 'debug' : ''}`} viewBox='0 0 1000 1000'>
           <defs>
             <filter id='gooey'>
               <feGaussianBlur in='SourceGraphic' result='blur' />
@@ -76,11 +131,16 @@ const Home = ({ grammar, layers, start }) => {
 
           {
             data
-              .map((layer, l, arr) => layer.map(({ start, end, length }, i) => (
+              .map((layer, l, arr) => layer.map(({ start, end, length, g }, i) => (
                 <path
-                  class='branch'
+                  className='branch'
                   key={`${l}--${i}`}
                   stroke={treecol(l, arr)}
+
+                  data-g={g}
+                  data-length={length}
+                  data-delay={l * 0.3}
+
                   strokeWidth={arr.length + 1 - l}
                   strokeDasharray={`${length} ${length}`}
                   strokeDashoffset={length}
@@ -105,7 +165,10 @@ const Home = ({ grammar, layers, start }) => {
                     x={end[0] - (size / 2)}
                     y={end[1] - (size / 2)}
                     className='flower'
+
+                    data-delay={(data.length * 0.3) + (0.01 * i)}
                     style={{
+                      filter: 'url(#gooey)',
                       transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
                     }}
                   />
