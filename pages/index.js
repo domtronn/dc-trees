@@ -116,6 +116,7 @@ const Home = ({
     <>
       <Card>
         <Controls
+          start={start}
           grammar={grammar}
           onChange={newGrammar => {
             setRotation(newGrammar[start].rotation)
@@ -168,8 +169,8 @@ const Home = ({
         <Range
           label='Maximum flower size'
           type='range'
-          min={flowerMin}
-          max={30}
+          min={flowerMin + 1}
+          max={flowerMin + 20}
           step={1}
           value={flowerMax}
           onChange={e => setFlowerMax(+e.target.value)}
@@ -370,7 +371,6 @@ const Home = ({
 export async function getServerSideProps ({ query }) {
   const handleDefault = () => {
     const layers = 7
-    const start = 'a'
     const grammar = {
       a: {
         next: ['b', 'c'],
@@ -396,12 +396,14 @@ export async function getServerSideProps ({ query }) {
         rotation: 0
       }
     }
-    return { props: { grammar, layers, start } }
+    return { props: { grammar, layers } }
   }
 
   if (query.settings) {
     try {
-      return { props: JSON.parse(atob(query.settings)) }
+      const { grammar, layers, flowerMin, flowerMax, flowerId, trunkWidth } =
+            JSON.parse(atob(query.settings))
+      return { props: { grammar, layers, flowerMin, flowerMax, flowerId, trunkWidth } }
     } catch (e) {
       return handleDefault()
     }

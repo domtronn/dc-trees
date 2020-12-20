@@ -12,7 +12,7 @@ const nextGrammar = (grammar) => String.fromCharCode(
     .reduce((acc, it) => Math.max(acc, it.charCodeAt(0)), 0)
 )
 
-const Controls = ({ grammar: g, onChange = _ => _ }) => {
+const Controls = ({ grammar: g, start, onChange = _ => _ }) => {
   const [grammar, setGrammar] = useState(g)
 
   const handleGrammar = newGrammar => {
@@ -95,6 +95,29 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                   }
                 })}
               />
+              {
+                name !== start && (
+                  <Button
+                    onClick={_ => handleGrammar(
+                      Object
+                        .entries(grammar)
+                        .reduce((acc, [key, value]) => {
+                          return key === name ? acc
+                            : {
+                              ...acc,
+                              [key]: {
+                                ...value,
+                                next: value.next.filter(i => i !== name)
+                              }
+                            }
+                        }, {})
+
+                    )}
+                  >
+                    Remove {name}
+                  </Button>
+                )
+              }
             </div>
           ))
       }
