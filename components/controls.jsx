@@ -91,9 +91,9 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                 {
                   Object
                     .keys(grammar)
-                    .map((option, i) => (
+                    .map((option, j) => (
                       <Checkbox
-                        key={i}
+                        key={`${i}--${j}`}
                         name={`${name}-${option}`}
                         checked={grammar[name].next.includes(option)}
                         onChange={e => handleGrammar({

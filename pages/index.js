@@ -30,7 +30,9 @@ const Button = styled.button`
   border-radius: 8px;
 `
 
-const animate = _ => {
+const animate = (data, { onStart, onEnd }) => {
+  onStart()
+
   ;[...document.querySelectorAll('.branch')]
     .forEach(p => {
       p.style.transitionDuration = '0s'
@@ -61,6 +63,13 @@ const animate = _ => {
         p.style.transform = 'scale(1)'
       })
   }, 1)
+
+  const branchAnimationDuration = data.length * 0.3
+  const flowerAnimationDuration = (data[data.length - 1].length * 0.01) + 0.2
+  setTimeout(_ => {
+    console.log(`calling on end after ${(branchAnimationDuration + flowerAnimationDuration) * 1000}ms`)
+    onEnd()
+  }, (branchAnimationDuration + flowerAnimationDuration) * 1000)
 }
 
 const Home = ({
@@ -72,10 +81,14 @@ const Home = ({
   const [rotation, setRotation] = useState(_grammar[start].rotation)
   const [grammar, setGrammar] = useState(_grammar)
   const [layers, setLayers] = useState(_layers)
+  const [anim, setAnim] = useState(false)
 
   const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
+  const animationHandlers = {
+    onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
+  }
 
-  useEffect(() => animate(), [])
+  useEffect(() => animate(data, animationHandlers), [])
 
   return (
     <div css={{ position: 'relative' }}>
@@ -87,7 +100,7 @@ const Home = ({
         }}
       />
 
-      <Button onClick={animate}>
+      <Button onClick={_ => animate(data, animationHandlers)}>
         Animate
       </Button>
       <Button
@@ -138,60 +151,67 @@ const Home = ({
             /* marginTop: -((2000 - (outerBox[1][1] - outerBox[1][0])) / 2) */
             marginTop: `-85vh`
           }}
-          className={`tree ${debug ? 'debug' : ''}`} viewBox='0 0 2000 2000'>
-          <defs>
-            <filter id='gooey'>
-              <feGaussianBlur in='SourceGraphic' result='blur' />
-              <feColorMatrix in='blur' mode='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 21 -9' result='cm' />
-            </filter>
-          </defs>
+          className={`tree ${debug ? 'debug' : ''} ${anim ? 'animate' : ''}`} viewBox='0 0 2000 2000'>
           {
             data
-              .map((layer, l, arr) => layer.map(({ start, end, length, g }, i) => (
-                <path
-                  className='branch'
-                  key={`${l}--${i}`}
-                  stroke={treecol(l, arr)}
+              .map((layer, l, arr) => (
+                <g
+                  key={l}
+                  id={`branches-${l}`}
+                  data-layer={l}
+                >
+                  {
+                    layer.map(({ start, end, length, g }, i) => (
+                      <path
+                        className='branch'
+                        key={`${l}--${i}`}
+                        stroke={treecol(l, arr)}
 
-                  data-g={g}
-                  data-length={length}
-                  data-delay={l * 0.3}
+                        data-g={g}
+                        data-length={length}
+                        data-delay={l * 0.3}
 
-                  strokeWidth={arr.length + 1 - l}
-                  strokeDasharray={`${length} ${length}`}
-                  strokeDashoffset={length}
-                  d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
-                  style={{
-                    transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
-                  }}
-                />
-              )))
+                        strokeWidth={arr.length + 1 - l}
+                        strokeDasharray={`${length} ${length}`}
+                        strokeDashoffset={anim ? length : 0}
+                        d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
+                        style={{
+                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
+                        }}
+                      />
+                    ))
+                  }
+                </g>
+              ))
           }
 
-          {
-            data
-              .slice(-1)
-              .map((layer, l) => layer.map(({ end }, i) => {
-                const size = ((l + 1) * (i + 1) % 12) + 8
-                return (
-                  <image
-                    key={`${l}-${i}`}
-                    href='flower-1.svg'
-                    height={size}
-                    x={end[0] - (size / 2)}
-                    y={end[1] - (size / 2)}
-                    className='flower'
+          <g id='flowers'>
+            {
+              data
+                .slice(-1)
+                .map((layer, l) => layer.map(({ end }, i) => {
+                  const size = ((l + 1) * (i + 1) % 12) + 8
+                  return (
+                    <image
+                      key={`${data.length}--${l}-${i}`}
+                      href='flower-1.svg'
+                      height={size}
+                      x={end[0] - (size / 2)}
+                      y={end[1] - (size / 2)}
+                      className='flower'
 
-                    data-delay={(data.length * 0.3) + (0.01 * i)}
-                    style={{
-                      transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
-                      filter: 'url(#gooey)',
-                      transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
-                    }}
-                  />
-                )
-              }))
-          }
+                      data-delay={(data.length * 0.3) + (0.01 * i)}
+                      style={{
+                        opacity: anim ? 0 : 1,
+                        transform: anim ? 'scale(0)' : 'scale(1)',
+                        transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
+                        transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
+                      }}
+                    />
+                  )
+                }))
+            }
+          </g>
 
         </svg>
       </div>
