@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import styled from '@emotion/styled'
 
 import palette from '../utils/palette'
@@ -48,6 +50,7 @@ const Input = styled.input`
 `
 
 const Container = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

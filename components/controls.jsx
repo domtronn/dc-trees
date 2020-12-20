@@ -61,42 +61,40 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                 }
               </div>
 
-              <div>
-                <Range
-                  onChange={e => handleGrammar({
-                    ...grammar,
-                    [name]: {
-                      ...grammar[name],
-                      length: +e.target.value
-                    }
-                  })}
-                  label='Length'
-                  value={length}
-                  name='length'
-                  type='range'
-                  min='10'
-                  max='100'
-                  step='0.5'
-                />
+              <Range
+                onChange={e => handleGrammar({
+                  ...grammar,
+                  [name]: {
+                    ...grammar[name],
+                    length: +e.target.value
+                  }
+                })}
+                label='Length'
+                value={length}
+                name='length'
+                type='range'
+                min='10'
+                max='100'
+                step='0.5'
+              />
 
-                <Range
-                  value={rotation}
-                  label='Rotation'
-                  name='rotation'
-                  type='range'
-                  min={-Math.PI}
-                  max={Math.PI}
-                  step={Math.PI / 360}
-                  valueF={val => `${Math.round(val * 180 / Math.PI)}°`}
-                  onChange={e => handleGrammar({
-                    ...grammar,
-                    [name]: {
-                      ...grammar[name],
-                      rotation: +e.target.value
-                    }
-                  })}
-                />
-              </div>
+              <Range
+                value={rotation}
+                label='Rotation'
+                name='rotation'
+                type='range'
+                min={-Math.PI}
+                max={Math.PI}
+                step={Math.PI / 360}
+                valueF={val => `${Math.round(val * 180 / Math.PI)}°`}
+                onChange={e => handleGrammar({
+                  ...grammar,
+                  [name]: {
+                    ...grammar[name],
+                    rotation: +e.target.value
+                  }
+                })}
+              />
             </div>
           ))
       }

@@ -52,7 +52,6 @@ const animate = (data, { onStart, onEnd }) => {
       p.style.transitionDuration = '0s'
       p.style.transitionDelay = '0s'
       p.style.opacity = 0
-      p.style.transform = 'scale(0)'
     })
 
   setTimeout(_ => {
@@ -67,7 +66,6 @@ const animate = (data, { onStart, onEnd }) => {
         p.style.transitionDuration = '0.2s'
         p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
         p.style.opacity = 1
-        p.style.transform = 'scale(1)'
       })
   }, 1)
 
@@ -89,6 +87,9 @@ const Home = ({
   const [flowerId, setFlowerId] = useState(1)
   const [flowerMin, setFlowerMin] = useState(8)
   const [flowerMax, setFlowerMax] = useState(28)
+  const [trunkWidth, setTrunkWidth] = useState(12)
+
+  const [visible, setCardVisible] = useState(false)
 
   const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
   const animationHandlers = {
@@ -126,7 +127,18 @@ const Home = ({
           min={1}
           max={10}
           step={1}
+          value={layers}
           onChange={e => setLayers(+e.target.value)}
+        />
+
+        <Range
+          label='TrunkWidth'
+          type='range'
+          min={5}
+          max={20}
+          step={1}
+          value={trunkWidth}
+          onChange={e => setTrunkWidth(+e.target.value)}
         />
 
         <Range
@@ -135,6 +147,7 @@ const Home = ({
           min={5}
           max={flowerMax}
           step={1}
+          value={flowerMin}
           onChange={e => setFlowerMin(+e.target.value)}
         />
 
@@ -144,6 +157,7 @@ const Home = ({
           min={flowerMin}
           max={30}
           step={1}
+          value={flowerMax}
           onChange={e => setFlowerMax(+e.target.value)}
         />
 
@@ -167,6 +181,26 @@ const Home = ({
               </Checkbox>
             ))
           }
+          <br />
+          {
+            [1,2,3,4].map(id => (
+              <Checkbox
+                checked={id + 4 === flowerId}
+                onChange={_ => setFlowerId(id + 4)}
+                name="flower-id"
+                type="radio"
+              >
+                <svg height="100%">
+                  <use
+                    fill={id + 4 === flowerId ? palette.white : palette.flower}
+                    href={`flower-${id + 4}.svg/#flower`}
+                    width={32}
+                    height={32}
+                  />
+                </svg>
+              </Checkbox>
+            ))
+          }
         </div>
 
       </Card>
@@ -181,7 +215,7 @@ const Home = ({
         input { display: block; }
         body { margin: 0; }
         .tree { z-index: 5; position: relative; }
-        .flower { opacity: 0; transform: scale(0); }
+        .flower { opacity: 0; }
         .debug .flower { display: none; }
       `}
         </style>
@@ -229,7 +263,7 @@ const Home = ({
                           data-length={length}
                           data-delay={l * 0.3}
 
-                          strokeWidth={arr.length + 1 - l}
+                          strokeWidth={Math.max(trunkWidth - l, 1)}
                           strokeDasharray={`${length} ${length}`}
                           strokeDashoffset={anim ? length : 0}
                           d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
@@ -266,10 +300,11 @@ const Home = ({
                         y={end[1] - (size / 2)}
 
                         data-delay={(data.length * 0.3) + (0.01 * i)}
+                        data-rotation={i / Math.PI}
                         style={{
                           opacity: anim ? 0 : 1,
-                          transform: anim ? 'scale(0)' : 'scale(1)',
-                          transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
+                          transform: `rotate(${((i / Math.PI) % (Math.PI / 4)) - (Math.PI / 8) - grammar[start].rotation}rad)`,
+                          transformOrigin: `${end[0]}px ${end[1]}px`,
                           transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
                         }}
                       />
