@@ -73,40 +73,44 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
   }
 
   return (
-    <div>
-      <style>
-      </style>
+    <div
+      css={css`
+        z-index: 20;
+      `}
+    >
       {
         Object
           .entries(grammar)
-          .map(([name, { length, rotation }]) => (
+          .map(([name, { length, rotation }, i]) => (
             <div
+              key={i}
               css={css`display: flex; flex-direction: row; align-items: center;`}
             >
               <h2 css={css`margin: 0 16px;`}>{name}</h2>
               <div>
                 {
-                Object
-                  .keys(grammar)
-                  .map(option => (
-                    <Checkbox
-                      name={`${name}-${option}`}
-                      checked={grammar[name].next.includes(option)}
-                      onChange={e => handleGrammar({
-                        ...grammar,
-                        [name]: {
-                          ...grammar[name],
-                          next: e.target.checked
-                            ? grammar[name].next.concat(option)
-                            : grammar[name].next.filter(i => i !== option)
-                        }
-                      })}
-                    >
-                      {option}
-                    </Checkbox>
-                  ))
+                  Object
+                    .keys(grammar)
+                    .map((option, i) => (
+                      <Checkbox
+                        key={i}
+                        name={`${name}-${option}`}
+                        checked={grammar[name].next.includes(option)}
+                        onChange={e => handleGrammar({
+                          ...grammar,
+                          [name]: {
+                            ...grammar[name],
+                            next: e.target.checked
+                              ? grammar[name].next.concat(option)
+                              : grammar[name].next.filter(i => i !== option)
+                          }
+                        })}
+                      >
+                        {option}
+                      </Checkbox>
+                    ))
                 }
-                </div>
+              </div>
               <div>
                 <input
                   onChange={e => handleGrammar({

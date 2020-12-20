@@ -4,7 +4,8 @@ import Head from 'next/head'
 import { useState, useEffect } from 'react'
 
 import { generate } from '../utils/generate-grammar'
-import { jsx } from '@emotion/core'
+import { boundingRect } from '../utils/bounding-box'
+import { jsx, css } from '@emotion/core'
 import { mix } from 'polished'
 
 import Controls from '../components/controls'
@@ -22,72 +23,66 @@ const cEnd = '#ebddd7'
 
 const treecol = col(cStart, cMid, cEnd)
 
-const Home = ({ grammar, layers, start }) => {
+const animate = _ => {
+  ;[...document.querySelectorAll('.branch')]
+    .forEach(p => {
+      p.style.transitionDuration = '0s'
+      p.style.transitionDelay = '0s'
+      p.style.strokeDashoffset = p.getAttribute('data-length')
+    })
+
+  ;[...document.querySelectorAll('.flower')]
+    .forEach(p => {
+      p.style.transitionDuration = '0s'
+      p.style.transitionDelay = '0s'
+      p.style.opacity = 0
+      p.style.transform = 'scale(0)'
+    })
+
+  setTimeout(_ => {
+    [...document.querySelectorAll('.branch')]
+      .forEach(p => {
+        p.style.transitionDuration = '0.3s'
+        p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
+        p.style.strokeDashoffset = 0
+      })
+    ;[...document.querySelectorAll('.flower')]
+      .forEach(p => {
+        p.style.transitionDuration = '0.2s'
+        p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
+        p.style.opacity = 1
+        p.style.transform = 'scale(1)'
+      })
+  }, 1)
+}
+
+const Home = ({
+  grammar: _grammar,
+  layers: _layers,
+  start
+}) => {
   const [debug, setDebug] = useState(false)
-  const [rotation, setRotation] = useState(grammar[start].rotation)
-  const [data, setData] = useState(
-    generate(grammar, layers, start, [500, 500])
-  )
+  const [rotation, setRotation] = useState(_grammar[start].rotation)
+  const [grammar, setGrammar] = useState(_grammar)
+  const [layers, setLayers] = useState(_layers)
 
-  useEffect(() => {
-    setTimeout(() => {
-      ;[...document.querySelectorAll('.branch')]
-        .forEach(p => (p.style.strokeDashoffset = 0))
+  const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 3))
+  const [innerBox, outerBox] = boundingRect(data, rotation, [1000, 1000])
 
-      ;[...document.querySelectorAll('.flower')]
-        .forEach(p => (p.style.opacity = 1))
-    }, 10)
-  }, [])
+  useEffect(() => animate(), [])
 
   return (
-    <div
-      css={{
-        position: 'relative'
-      }}
-    >
+    <div css={{ position: 'relative' }}>
 
       <Controls
         grammar={grammar}
         onChange={newGrammar => {
           setRotation(newGrammar[start].rotation)
-          setData(
-            generate(newGrammar, layers, start, [500, 500])
-          )
+          setGrammar(newGrammar)
         }}
       />
 
-      <button
-        onClick={_ => {
-          ;[...document.querySelectorAll('.branch')]
-            .forEach(p => {
-              p.style.transitionDuration = '0s'
-              p.style.transitionDelay = '0s'
-              p.style.strokeDashoffset = p.getAttribute('data-length')
-            })
-
-          ;[...document.querySelectorAll('.flower')]
-            .forEach(p => {
-              p.style.transitionDuration = '0s'
-              p.style.transitionDelay = '0s'
-              p.style.opacity = 0
-            })
-
-          setTimeout(_ => {
-            [...document.querySelectorAll('.branch')]
-              .forEach(p => {
-                p.style.transitionDuration = '0.3s'
-                p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
-                p.style.strokeDashoffset = 0
-              })
-            ;[...document.querySelectorAll('.flower')]
-            .forEach(p => {
-              p.style.transitionDuration = '0.2s'
-              p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
-              p.style.opacity = 1
-            })
-          }, 1)
-        }}
-      >
+      <button onClick={animate}>
         Animate
       </button>
       <button
@@ -95,40 +90,55 @@ const Home = ({ grammar, layers, start }) => {
       >
         Toggle debug
       </button>
+      <input
+        type='range'
+        min={1}
+        max={10}
+        step={1}
+        onChange={e => setLayers(+e.target.value)}
+      />
 
       <style>
         {`
         input { display: block; }
         body { margin: 0; }
-        .tree { margin-bottom: -580px; z-index: 5; position: relative; }
+        .tree { z-index: 5; position: relative; }
         .tree path, .flower {
-          transform-origin: 200px 600px;
         }
-        .flower { opacity: 0; }
+        .flower { opacity: 0; transform: scale(0); }
 
         .debug .flower { display: none; }
-        .debug path[data-g="a"] { stroke: #ff595e !important; }
-        .debug path[data-g="b"] { stroke: #ffca3a !important; }
-        .debug path[data-g="c"] { stroke: #8ac926 !important; }
-        .debug path[data-g="d"] { stroke: #1982c4 !important; }
-        .debug path[data-g="e"] { stroke: #6a4c93 !important; }
       `}
       </style>
       <div
-        style={{ position: 'relative' }}
+        css={css`
+        .debug path[data-g='a'] { stroke: #ff595e !important; }
+        .debug path[data-g='b'] { stroke: #ffca3a !important; }
+        .debug path[data-g='c'] { stroke: #8ac926 !important; }
+        .debug path[data-g='d'] { stroke: #1982c4 !important; }
+        .debug path[data-g='e'] { stroke: #6a4c93 !important; }
+        `}
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          maxWidth: '100vw'
+        }}
       >
         <svg
           style={{
-            transform: `rotate(${rotation}rad)`
+            transform: `rotate(${rotation}rad)`,
+            marginLeft: `-50vw`,
+            width: `200vw`,
+            /* marginTop: -((2000 - (outerBox[1][1] - outerBox[1][0])) / 2) */
+            marginTop: `-85vh`
           }}
-          className={`tree ${debug ? 'debug' : ''}`} viewBox='0 0 1000 1000'>
+          className={`tree ${debug ? 'debug' : ''}`} viewBox='0 0 2000 2000'>
           <defs>
             <filter id='gooey'>
               <feGaussianBlur in='SourceGraphic' result='blur' />
               <feColorMatrix in='blur' mode='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 21 -9' result='cm' />
             </filter>
           </defs>
-
           {
             data
               .map((layer, l, arr) => layer.map(({ start, end, length, g }, i) => (
@@ -168,6 +178,7 @@ const Home = ({ grammar, layers, start }) => {
 
                     data-delay={(data.length * 0.3) + (0.01 * i)}
                     style={{
+                      transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
                       filter: 'url(#gooey)',
                       transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
                     }}
@@ -179,7 +190,12 @@ const Home = ({ grammar, layers, start }) => {
         </svg>
       </div>
 
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
+      <svg
+        style={{
+          position: 'fixed',
+          bottom: -10
+        }}
+        xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
         <path
           fill='#5d6e1e'
           d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
