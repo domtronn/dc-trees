@@ -4,8 +4,8 @@ import Head from 'next/head'
 import { useState, useEffect } from 'react'
 
 import { generate } from '../utils/generate-grammar'
-import { boundingRect } from '../utils/bounding-box'
 import { jsx, css } from '@emotion/core'
+import styled from '@emotion/styled'
 import { mix } from 'polished'
 
 import Controls from '../components/controls'
@@ -22,6 +22,13 @@ const cMid = '#ebddd7'
 const cEnd = '#ebddd7'
 
 const treecol = col(cStart, cMid, cEnd)
+
+const Button = styled.button`
+  border: none;
+  outline: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+`
 
 const animate = _ => {
   ;[...document.querySelectorAll('.branch')]
@@ -66,14 +73,12 @@ const Home = ({
   const [grammar, setGrammar] = useState(_grammar)
   const [layers, setLayers] = useState(_layers)
 
-  const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 3))
-  const [innerBox, outerBox] = boundingRect(data, rotation, [1000, 1000])
+  const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
 
   useEffect(() => animate(), [])
 
   return (
     <div css={{ position: 'relative' }}>
-
       <Controls
         grammar={grammar}
         onChange={newGrammar => {
@@ -82,14 +87,14 @@ const Home = ({
         }}
       />
 
-      <button onClick={animate}>
+      <Button onClick={animate}>
         Animate
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={_ => setDebug(!debug)}
       >
         Toggle debug
-      </button>
+      </Button>
       <input
         type='range'
         min={1}
@@ -126,6 +131,7 @@ const Home = ({
       >
         <svg
           style={{
+            border: '2px solid black',
             transform: `rotate(${rotation}rad)`,
             marginLeft: `-50vw`,
             width: `200vw`,
