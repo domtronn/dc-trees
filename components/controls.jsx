@@ -83,8 +83,8 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                 label='Rotation'
                 name='rotation'
                 type='range'
-                min={-Math.PI}
-                max={Math.PI}
+                min={-Math.PI / 2}
+                max={Math.PI / 2}
                 step={Math.PI / 360}
                 valueF={val => `${Math.round(val * 180 / Math.PI)}°`}
                 onChange={e => handleGrammar({

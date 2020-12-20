@@ -4,12 +4,13 @@ import Head from 'next/head'
 /**
    TODO: highlight branches when modifyin grammars
    TODO: allow deletion of removal
-   TODO: save as form params - base64 of grammar & settings?
    TODO: music & rythm.js
    TODO: cherry blossom blowing in the wind
  */
 
 import { useState, useEffect } from 'react'
+import btoa from 'btoa'
+import atob from 'atob'
 
 import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
@@ -76,24 +77,37 @@ const animate = (data, { onStart, onEnd }) => {
 
 const Home = ({
   grammar: _grammar,
-  layers: _layers,
-  start
+  layers: _layers = 9,
+  flowerId: _flowerId = 1,
+  flowerMin: _flowerMin = 20,
+  flowerMax: _flowerMax = 28,
+  trunkWidth: _trunkWidth = 12,
+  start = 'a'
 }) => {
-  const [debug, setDebug] = useState(false)
   const [rotation, setRotation] = useState(_grammar[start].rotation)
   const [grammar, setGrammar] = useState(_grammar)
   const [layers, setLayers] = useState(_layers)
-  const [anim, setAnim] = useState(false)
-  const [flowerId, setFlowerId] = useState(1)
-  const [flowerMin, setFlowerMin] = useState(8)
-  const [flowerMax, setFlowerMax] = useState(28)
-  const [trunkWidth, setTrunkWidth] = useState(12)
+  const [flowerId, setFlowerId] = useState(_flowerId)
+  const [flowerMin, setFlowerMin] = useState(_flowerMin)
+  const [flowerMax, setFlowerMax] = useState(_flowerMax)
+  const [trunkWidth, setTrunkWidth] = useState(_trunkWidth)
 
+  const [anim, setAnim] = useState(false)
+  const [debug, setDebug] = useState(false)
   const [visible, setCardVisible] = useState(false)
 
   const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
   const animationHandlers = {
     onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
+  }
+
+  const settings = {
+    grammar,
+    layers,
+    flowerId,
+    flowerMin,
+    flowerMax,
+    trunkWidth
   }
 
   useEffect(() => animate(data, animationHandlers), [])
@@ -161,21 +175,23 @@ const Home = ({
           onChange={e => setFlowerMax(+e.target.value)}
         />
 
-        <div>
+        <div
+          css={css`text-align: center;`}
+        >
           {
             [1,2,3,4].map(id => (
               <Checkbox
                 checked={id === flowerId}
                 onChange={_ => setFlowerId(id)}
-                name="flower-id"
-                type="radio"
+                name='flower-id'
+                type='radio'
               >
-                <svg height="100%">
+                <svg height={26} css={css`padding: 3px`}>
                   <use
                     fill={id === flowerId ? palette.white : palette.flower}
                     href={`flower-${id}.svg/#flower`}
-                    width={32}
-                    height={32}
+                    width={26}
+                    height={26}
                   />
                 </svg>
               </Checkbox>
@@ -187,15 +203,15 @@ const Home = ({
               <Checkbox
                 checked={id + 4 === flowerId}
                 onChange={_ => setFlowerId(id + 4)}
-                name="flower-id"
-                type="radio"
+                name='flower-id'
+                type='radio'
               >
-                <svg height="100%">
+                <svg height={26} css={css`padding: 3px`}>
                   <use
                     fill={id + 4 === flowerId ? palette.white : palette.flower}
                     href={`flower-${id + 4}.svg/#flower`}
-                    width={32}
-                    height={32}
+                    width={26}
+                    height={26}
                   />
                 </svg>
               </Checkbox>
@@ -203,11 +219,29 @@ const Home = ({
           }
         </div>
 
+        <Button
+          block
+          onClick={_ => {
+            navigator
+              .clipboard
+              .writeText(`http://localhost:3000/?settings=${btoa(JSON.stringify(settings))}`)
+              .then(function() {
+                /* clipboard successfully set */
+              }, function() {
+                /* clipboard write failed */
+              });
+          }}
+        >
+          Copy url
+        </Button>
+
       </Card>
       <div css={{ position: 'relative' }}>
         <style>
           {`
+
         :root {
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
           --primary: ${palette.flower};
           --white: ${palette.white};
           --black: ${palette.black};
@@ -333,36 +367,47 @@ const Home = ({
   )
 }
 
-export async function getStaticProps () {
-  const layers = 7
-  const start = 'a'
-  const grammar = {
-    a: {
-      next: ['b', 'c'],
-      length: 50,
-      rotation: 3 * Math.PI / 11
-    },
+export async function getServerSideProps ({ query }) {
+  const handleDefault = () => {
+    const layers = 7
+    const start = 'a'
+    const grammar = {
+      a: {
+        next: ['b', 'c'],
+        length: 50,
+        rotation: 3 * Math.PI / 11
+      },
 
-    b: {
-      next: ['b', 'd'],
-      length: 32,
-      rotation: Math.PI / 8
-    },
+      b: {
+        next: ['b', 'd'],
+        length: 32,
+        rotation: Math.PI / 8
+      },
 
-    c: {
-      next: ['a', 'b', 'c'],
-      length: 80,
-      rotation: -Math.PI / 12
-    },
+      c: {
+        next: ['a', 'b', 'c'],
+        length: 80,
+        rotation: -Math.PI / 12
+      },
 
-    d: {
-      next: ['d','b'],
-      length: 64,
-      rotation: 0
+      d: {
+        next: ['d','b'],
+        length: 64,
+        rotation: 0
+      }
     }
+    return { props: { grammar, layers, start } }
   }
 
-  return { props: { grammar, layers, start } }
+  if (query.settings) {
+    try {
+      return { props: JSON.parse(atob(query.settings)) }
+    } catch (e) {
+      return handleDefault()
+    }
+  } else {
+    return handleDefault()
+  }
 }
 
 export default Home
