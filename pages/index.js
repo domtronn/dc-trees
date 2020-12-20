@@ -1,30 +1,33 @@
 /** @jsx jsx */
 import Head from 'next/head'
 
+/**
+   TODO: highlight branches when modifyin grammars
+   TODO: allow deletion of removal
+   TODO: save as form params - base64 of grammar & settings?
+   TODO: music & rythm.js
+   TODO: cherry blossom blowing in the wind
+ */
+
 import { useState, useEffect } from 'react'
 
 import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
 import { mix, lighten } from 'polished'
 
+import palette from '../utils/palette'
+
 import Controls from '../components/controls'
+
+import { Card } from '../components/card'
 import { Button } from '../components/button'
+import { Range } from '../components/range'
 import { Checkbox } from '../components/checkbox'
 
 const col = (s, m, e, limit = 7) => (i, arr) => {
   return i < limit
     ? mix(i / (limit - 1), m, s)
     : mix((i - limit) / (arr.length - limit), e, m)
-}
-
-const palette = {
-  flower: '#f998ba',
-  flower2: '#f69c8f',
-  wood: '#432818',
-  branch: '#ebddd7',
-  grass: '#5d6e1e',
-  white: '#fffffc',
-  black: '#2b2b2b',
 }
 
 const treecol = col(
@@ -70,10 +73,7 @@ const animate = (data, { onStart, onEnd }) => {
 
   const branchAnimationDuration = data.length * 0.3
   const flowerAnimationDuration = (data[data.length - 1].length * 0.01) + 0.2
-  setTimeout(_ => {
-    console.log(`calling on end after ${(branchAnimationDuration + flowerAnimationDuration) * 1000}ms`)
-    onEnd()
-  }, (branchAnimationDuration + flowerAnimationDuration) * 1000)
+  setTimeout(onEnd , (branchAnimationDuration + flowerAnimationDuration) * 1000)
 }
 
 const Home = ({
@@ -87,6 +87,8 @@ const Home = ({
   const [layers, setLayers] = useState(_layers)
   const [anim, setAnim] = useState(false)
   const [flowerId, setFlowerId] = useState(1)
+  const [flowerMin, setFlowerMin] = useState(8)
+  const [flowerMax, setFlowerMax] = useState(28)
 
   const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
   const animationHandlers = {
@@ -96,58 +98,81 @@ const Home = ({
   useEffect(() => animate(data, animationHandlers), [])
 
   return (
-    <div css={{ position: 'relative' }}>
-      <Controls
-        grammar={grammar}
-        onChange={newGrammar => {
-          setRotation(newGrammar[start].rotation)
-          setGrammar(newGrammar)
-        }}
-      />
+    <>
+      <Card>
+        <Controls
+          grammar={grammar}
+          onChange={newGrammar => {
+            setRotation(newGrammar[start].rotation)
+            setGrammar(newGrammar)
+          }}
+        />
+        <Button
+          block
+          onClick={_ => animate(data, animationHandlers)}
+        >
+          Animate
+        </Button>
+        <Button
+          block
+          onClick={_ => setDebug(!debug)}
+        >
+          Toggle debug
+        </Button>
 
-      <Button
-        block
-        onClick={_ => animate(data, animationHandlers)}>
-        Animate
-      </Button>
-      <Button
-        block
-        onClick={_ => setDebug(!debug)}
-      >
-        Toggle debug
-      </Button>
-      <input
-        type='range'
-        min={1}
-        max={10}
-        step={1}
-        onChange={e => setLayers(+e.target.value)}
-      />
+        <Range
+          label='Depth'
+          type='range'
+          min={1}
+          max={10}
+          step={1}
+          onChange={e => setLayers(+e.target.value)}
+        />
 
-      <div>
-        {
-          [1,2,3].map(id => (
-            <Checkbox
-              checked={id === flowerId}
-              onChange={_ => setFlowerId(id)}
-              name="flower-id"
-              type="radio"
-            >
-              <svg height="100%">
-                <use
-                  fill={id === flowerId ? palette.white : palette.flower}
-                  href={`flower-${id}.svg/#flower`}
-                  width={32}
-                  height={32}
-                />
-              </svg>
-            </Checkbox>
-          ))
-        }
-      </div>
+        <Range
+          type='range'
+          label='Minimum flower size'
+          min={5}
+          max={flowerMax}
+          step={1}
+          onChange={e => setFlowerMin(+e.target.value)}
+        />
 
-      <style>
-        {`
+        <Range
+          label='Maximum flower size'
+          type='range'
+          min={flowerMin}
+          max={30}
+          step={1}
+          onChange={e => setFlowerMax(+e.target.value)}
+        />
+
+        <div>
+          {
+            [1,2,3,4].map(id => (
+              <Checkbox
+                checked={id === flowerId}
+                onChange={_ => setFlowerId(id)}
+                name="flower-id"
+                type="radio"
+              >
+                <svg height="100%">
+                  <use
+                    fill={id === flowerId ? palette.white : palette.flower}
+                    href={`flower-${id}.svg/#flower`}
+                    width={32}
+                    height={32}
+                  />
+                </svg>
+              </Checkbox>
+            ))
+          }
+        </div>
+
+      </Card>
+      <div css={{ position: 'relative' }}>
+        <style>
+          {`
         :root {
           --primary: ${palette.flower};
           --white: ${palette.white};
@@ -159,119 +184,117 @@ const Home = ({
         .flower { opacity: 0; transform: scale(0); }
         .debug .flower { display: none; }
       `}
-      </style>
-      <div
-        css={css`
+        </style>
+        <div
+          css={css`
         .debug path[data-g='a'] { stroke: #ff595e !important; }
         .debug path[data-g='b'] { stroke: #ffca3a !important; }
         .debug path[data-g='c'] { stroke: #8ac926 !important; }
         .debug path[data-g='d'] { stroke: #1982c4 !important; }
         .debug path[data-g='e'] { stroke: #6a4c93 !important; }
         `}
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          maxWidth: '100vw'
-        }}
-      >
-        <svg
-          className={`tree ${debug ? 'debug' : ''} ${anim ? 'animate' : ''}`} viewBox='0 0 2000 2000'
           style={{
-            border: '2px solid black',
-            transform: `rotate(${rotation}rad)`,
-            marginLeft: `-50vw`,
-            width: `200vw`,
-            /* marginTop: -((2000 - (outerBox[1][1] - outerBox[1][0])) / 2) */
-            marginTop: `-85vh`
+            position: 'relative',
+            overflow: 'hidden',
+            maxWidth: '100vw'
           }}
         >
-          {
-            data
-              .map((layer, l, arr) => (
-                <g
-                  key={l}
-                  id={`branches-${l}`}
-                  data-layer={l}
-                >
-                  {
-                    layer.map(({ start, end, length, g }, i) => (
-                      <path
-                        className='branch'
-                        key={`${l}--${i}`}
-                        stroke={treecol(l, arr)}
-
-                        data-g={g}
-                        data-length={length}
-                        data-delay={l * 0.3}
-
-                        strokeWidth={arr.length + 1 - l}
-                        strokeDasharray={`${length} ${length}`}
-                        strokeDashoffset={anim ? length : 0}
-                        d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
-                        style={{
-                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
-                        }}
-                      />
-                    ))
-                  }
-                </g>
-              ))
-          }
-
-          <g id='flowers'>
+          <svg
+            className={`tree ${debug ? 'debug' : ''} ${anim ? 'animate' : ''}`} viewBox='0 0 2000 2000'
+            style={{
+              border: '2px solid black',
+              transform: `rotate(${rotation}rad)`,
+              marginLeft: `-50vw`,
+              width: `200vw`,
+              /* marginTop: -((2000 - (outerBox[1][1] - outerBox[1][0])) / 2) */
+              marginTop: `-85vh`
+            }}
+          >
             {
               data
-                .slice(-1)
-                .map((layer, l) => layer.map(({ end }, i) => {
-                  // TODO: Add flower size to control
-                  const flowerMin = 8
-                  const flowerMax = 28
-                  const size = ((l + 1) * (i + 1) % (flowerMax - flowerMin)) + flowerMin
-                  return (
-                    <use
-                      key={`${data.length}--${l}-${i}`}
-                      href={`flower-${flowerId}.svg#flower`}
-                      className='flower'
-                      fill={
-                        lighten(
-                          0.01 * (i % 4),
-                          mix(1 / (5 - (i % 5)), palette.flower, palette.flower2)
-                        )
-                      }
-                      height={size}
-                      width={size}
-                      x={end[0] - (size / 2)}
-                      y={end[1] - (size / 2)}
+                .map((layer, l, arr) => (
+                  <g
+                    key={l}
+                    id={`branches-${l}`}
+                    data-layer={l}
+                  >
+                    {
+                      layer.map(({ start, end, length, g }, i) => (
+                        <path
+                          className='branch'
+                          key={`${l}--${i}`}
+                          stroke={treecol(l, arr)}
 
-                      data-delay={(data.length * 0.3) + (0.01 * i)}
-                      style={{
-                        opacity: anim ? 0 : 1,
-                        transform: anim ? 'scale(0)' : 'scale(1)',
-                        transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
-                        transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
-                      }}
-                    />
-                  )
-                }))
+                          data-g={g}
+                          data-length={length}
+                          data-delay={l * 0.3}
+
+                          strokeWidth={arr.length + 1 - l}
+                          strokeDasharray={`${length} ${length}`}
+                          strokeDashoffset={anim ? length : 0}
+                          d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
+                          style={{
+                            transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
+                          }}
+                        />
+                      ))
+                    }
+                  </g>
+                ))
             }
-          </g>
 
+            <g id='flowers'>
+              {
+                data
+                  .slice(-1)
+                  .map((layer, l) => layer.map(({ end }, i) => {
+                    const size = ((l + 1) * (i + 1) % (flowerMax - flowerMin)) + flowerMin
+                    return (
+                      <use
+                        key={`${data.length}--${l}-${i}`}
+                        href={`flower-${flowerId}.svg#flower`}
+                        className='flower'
+                        fill={
+                          lighten(
+                            0.01 * (i % 4),
+                            mix(1 / (5 - (i % 5)), palette.flower, palette.flower2)
+                          )
+                        }
+                        height={size}
+                        width={size}
+                        x={end[0] - (size / 2)}
+                        y={end[1] - (size / 2)}
+
+                        data-delay={(data.length * 0.3) + (0.01 * i)}
+                        style={{
+                          opacity: anim ? 0 : 1,
+                          transform: anim ? 'scale(0)' : 'scale(1)',
+                          transformOrigin: `${end[0] - (size / 2)}px ${end[1] - (size / 2)}px`,
+                          transition: `opacity 0.2s linear ${(data.length * 0.3) + (0.01 * i)}s`
+                        }}
+                      />
+                    )
+                  }))
+              }
+            </g>
+
+          </svg>
+        </div>
+
+        <svg
+          style={{
+            position: 'fixed',
+            bottom: -10
+          }}
+          xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
+          <path
+            fill={palette.grass}
+            d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
+          />
         </svg>
+
       </div>
-
-      <svg
-        style={{
-          position: 'fixed',
-          bottom: -10
-        }}
-        xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
-        <path
-          fill={palette.grass}
-          d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
-        />
-      </svg>
-
-    </div>
+    </>
   )
 }
 

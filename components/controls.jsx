@@ -3,6 +3,7 @@ import { jsx, css } from '@emotion/core'
 import { useState } from 'react'
 
 import { Button } from './button'
+import { Range } from './range'
 import { Checkbox } from './checkbox'
 
 const nextGrammar = (grammar) => String.fromCharCode(
@@ -31,7 +32,7 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
           .map(([name, { length, rotation }, i]) => (
             <div
               key={i}
-              css={css`display: flex; flex-direction: row; align-items: center;`}
+              css={css`display: flex; flex-direction: column; align-items: center;`}
             >
               <h2 css={css`margin: 0 16px;`}>{name}</h2>
               <div>
@@ -59,8 +60,9 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                     ))
                 }
               </div>
+
               <div>
-                <input
+                <Range
                   onChange={e => handleGrammar({
                     ...grammar,
                     [name]: {
@@ -68,6 +70,7 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                       length: +e.target.value
                     }
                   })}
+                  label='Length'
                   value={length}
                   name='length'
                   type='range'
@@ -75,13 +78,16 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                   max='100'
                   step='0.5'
                 />
-                <input
+
+                <Range
                   value={rotation}
+                  label='Rotation'
                   name='rotation'
                   type='range'
                   min={-Math.PI}
                   max={Math.PI}
                   step={Math.PI / 360}
+                  valueF={val => `${Math.round(val * 180 / Math.PI)}°`}
                   onChange={e => handleGrammar({
                     ...grammar,
                     [name]: {
