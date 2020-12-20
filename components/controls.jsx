@@ -2,66 +2,13 @@
 import { jsx, css } from '@emotion/core'
 import { useState } from 'react'
 
+import { Button } from './button'
+import { Checkbox } from './checkbox'
+
 const nextGrammar = (grammar) => String.fromCharCode(
   1 + Object
     .keys(grammar)
     .reduce((acc, it) => Math.max(acc, it.charCodeAt(0)), 0)
-)
-
-const Checkbox = ({ name, children, ...props }) => (
-  <div
-    css={css`
-      position: relative;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      height: 32px;
-      width: 32px;
-      margin: 0 8px;
-    `}
-  >
-    <input
-      css={css`
-        cursor: pointer;
-        z-index: 2;
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 32px;
-        width: 32px;
-        opacity: 0;
-
-        &:checked ~ label {
-          border-color: #f998ba;
-          background-color: #f998ba;
-          color: white;
-        }
-      `}
-      name={name}
-      type='checkbox'
-      {...props}
-    />
-    <label
-      css={css`
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 32px;
-        width: 32px;
-        background-color: #efefef;
-        border: 2px solid #2b2b2b;
-        color: #2b2b2b;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        
-      `}
-      htmlFor={name}
-    >
-      {children}
-    </label>
-  </div>
 )
 
 const Controls = ({ grammar: g, onChange = _ => _ }) => {
@@ -93,6 +40,7 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
                     .keys(grammar)
                     .map((option, j) => (
                       <Checkbox
+                        id={`${i}--${j}`}
                         key={`${i}--${j}`}
                         name={`${name}-${option}`}
                         checked={grammar[name].next.includes(option)}
@@ -147,7 +95,8 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
           ))
       }
 
-      <button
+      <Button
+        block
         onClick={_ => handleGrammar({
           ...grammar,
           [nextGrammar(grammar)]: {
@@ -158,7 +107,7 @@ const Controls = ({ grammar: g, onChange = _ => _ }) => {
         })}
       >
         New grammar
-      </button>
+      </Button>
     </div>
   )
 }

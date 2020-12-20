@@ -5,30 +5,34 @@ import { useState, useEffect } from 'react'
 
 import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
-import styled from '@emotion/styled'
-import { mix } from 'polished'
+import { mix, lighten } from 'polished'
 
 import Controls from '../components/controls'
+import { Button } from '../components/button'
+import { Checkbox } from '../components/checkbox'
 
-const col = (s, m, e) => (i, arr) => {
-  const limit = 7
+const col = (s, m, e, limit = 7) => (i, arr) => {
   return i < limit
     ? mix(i / (limit - 1), m, s)
     : mix((i - limit) / (arr.length - limit), e, m)
 }
 
-const cStart = '#432818'
-const cMid = '#ebddd7'
-const cEnd = '#ebddd7'
+const palette = {
+  flower: '#f998ba',
+  flower2: '#f69c8f',
+  wood: '#432818',
+  branch: '#ebddd7',
+  grass: '#5d6e1e',
+  white: '#fffffc',
+  black: '#2b2b2b',
+}
 
-const treecol = col(cStart, cMid, cEnd)
-
-const Button = styled.button`
-  border: none;
-  outline: none;
-  padding: 16px 32px;
-  border-radius: 8px;
-`
+const treecol = col(
+  palette.wood,
+  palette.branch,
+  palette.white,
+  7
+)
 
 const animate = (data, { onStart, onEnd }) => {
   onStart()
@@ -82,6 +86,7 @@ const Home = ({
   const [grammar, setGrammar] = useState(_grammar)
   const [layers, setLayers] = useState(_layers)
   const [anim, setAnim] = useState(false)
+  const [flowerId, setFlowerId] = useState(1)
 
   const data = generate(grammar, layers, start, [1000, 1000], (length, layer) => length - (layer * 5))
   const animationHandlers = {
@@ -100,10 +105,13 @@ const Home = ({
         }}
       />
 
-      <Button onClick={_ => animate(data, animationHandlers)}>
+      <Button
+        block
+        onClick={_ => animate(data, animationHandlers)}>
         Animate
       </Button>
       <Button
+        block
         onClick={_ => setDebug(!debug)}
       >
         Toggle debug
@@ -116,15 +124,39 @@ const Home = ({
         onChange={e => setLayers(+e.target.value)}
       />
 
+      <div>
+        {
+          [1,2,3].map(id => (
+            <Checkbox
+              checked={id === flowerId}
+              onChange={_ => setFlowerId(id)}
+              name="flower-id"
+              type="radio"
+            >
+              <svg height="100%">
+                <use
+                  fill={id === flowerId ? palette.white : palette.flower}
+                  href={`flower-${id}.svg/#flower`}
+                  width={32}
+                  height={32}
+                />
+              </svg>
+            </Checkbox>
+          ))
+        }
+      </div>
+
       <style>
         {`
+        :root {
+          --primary: ${palette.flower};
+          --white: ${palette.white};
+          --black: ${palette.black};
+        }
         input { display: block; }
         body { margin: 0; }
         .tree { z-index: 5; position: relative; }
-        .tree path, .flower {
-        }
         .flower { opacity: 0; transform: scale(0); }
-
         .debug .flower { display: none; }
       `}
       </style>
@@ -143,6 +175,7 @@ const Home = ({
         }}
       >
         <svg
+          className={`tree ${debug ? 'debug' : ''} ${anim ? 'animate' : ''}`} viewBox='0 0 2000 2000'
           style={{
             border: '2px solid black',
             transform: `rotate(${rotation}rad)`,
@@ -151,7 +184,7 @@ const Home = ({
             /* marginTop: -((2000 - (outerBox[1][1] - outerBox[1][0])) / 2) */
             marginTop: `-85vh`
           }}
-          className={`tree ${debug ? 'debug' : ''} ${anim ? 'animate' : ''}`} viewBox='0 0 2000 2000'>
+        >
           {
             data
               .map((layer, l, arr) => (
@@ -190,15 +223,25 @@ const Home = ({
               data
                 .slice(-1)
                 .map((layer, l) => layer.map(({ end }, i) => {
-                  const size = ((l + 1) * (i + 1) % 12) + 8
+                  // TODO: Add flower size to control
+                  const flowerMin = 8
+                  const flowerMax = 28
+                  const size = ((l + 1) * (i + 1) % (flowerMax - flowerMin)) + flowerMin
                   return (
-                    <image
+                    <use
                       key={`${data.length}--${l}-${i}`}
-                      href='flower-1.svg'
+                      href={`flower-${flowerId}.svg#flower`}
+                      className='flower'
+                      fill={
+                        lighten(
+                          0.01 * (i % 4),
+                          mix(1 / (5 - (i % 5)), palette.flower, palette.flower2)
+                        )
+                      }
                       height={size}
+                      width={size}
                       x={end[0] - (size / 2)}
                       y={end[1] - (size / 2)}
-                      className='flower'
 
                       data-delay={(data.length * 0.3) + (0.01 * i)}
                       style={{
@@ -223,7 +266,7 @@ const Home = ({
         }}
         xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
         <path
-          fill='#5d6e1e'
+          fill={palette.grass}
           d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
         />
       </svg>
