@@ -16,7 +16,7 @@ export const Card = styled.div`
   max-width: 320px;
   height: auto;
 
-  padding: 32px 48px;
+  padding: 32px 32px;
 
   top: 50%:
   transform: translateY(-50%);

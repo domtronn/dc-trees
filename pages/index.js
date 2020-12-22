@@ -17,12 +17,13 @@ import { jsx, css } from '@emotion/core'
 
 import palette from '../utils/palette'
 
-import Controls from '../components/controls'
+import { Controls, Definitions } from '../components/controls'
 
 import { Card } from '../components/card'
 import { Button } from '../components/button'
 import { Range } from '../components/range'
 import { Checkbox } from '../components/checkbox'
+import { Tabs } from '../components/tabs'
 
 import { MeasureRender } from '../components/measure'
 import Tree from '../components/tree'
@@ -149,147 +150,138 @@ const Home = ({
 
       {true && (
         <Card>
-          <Controls
-            start={start}
-            grammar={grammar}
-            onChange={newGrammar => {
-              setRotation(newGrammar[start].rotation)
-              setGrammar(newGrammar)
-            }}
-          />
-          <Button
-            block
-            onClick={_ => animate(data, animationHandlers)}
+          <Tabs
+            size='lg'
           >
-            Animate
-          </Button>
-          <Button
-            block
-            onClick={_ => setDebug(!debug)}
-          >
-            Toggle debug
-          </Button>
+            <div label='Settings'>
+              <Button block onClick={_ => animate(data, animationHandlers)}>
+                Animate
+              </Button>
 
-          <Button
-            block
-            onClick={_ => setFlowerVis(!flowerVis)}
-          >
-            Toggle flowers
-          </Button>
+              <Button block onClick={_ => setDebug(!debug)}>
+                Debug
+              </Button>
+            </div>
 
-          <Range
-            label='Depth'
-            type='range'
-            min={1}
-            max={20}
-            step={1}
-            value={layers}
-            onChange={e => setLayers(+e.target.value)}
-          />
+            <div label='Tree'>
+              <Range
+                label='Recursion depth'
+                range={[0, 12, 1]}
+                value={layers}
+                onChange={e => setLayers(+e.target.value)}
+              />
 
-          <Range
-            label='Scale'
-            type='range'
-            min={1}
-            max={3}
-            step={0.1}
-            value={scaleCoef}
-            onChange={e => setScaleCoef(+e.target.value)}
-          />
+              <Range
+                label='Brach scale'
+                range={[1, 3, 0.1]}
+                value={scaleCoef}
+                onChange={e => setScaleCoef(+e.target.value)}
+              />
 
-          <Range
-            label='TrunkWidth'
-            type='range'
-            min={5}
-            max={20}
-            step={1}
-            value={trunkWidth}
-            onChange={e => setTrunkWidth(+e.target.value)}
-          />
+              <Range
+                label='Branch width'
+                range={[5, 20, 1]}
+                value={trunkWidth}
+                onChange={e => setTrunkWidth(+e.target.value)}
+              />
 
-          <Range
-            type='range'
-            label='Minimum flower size'
-            min={0}
-            max={40}
-            step={1}
-            value={flowerSize}
-            onChange={e => setFlowerSize(+e.target.value)}
-          />
-
-          <div css={css`text-align: center;`}>
-            <h3>Leaf</h3>
-            {
-              [1,2,3,4].map(id => (
+              <h3>Growth rate</h3>
+              <div css={css`text-align: center; margin-top: -12px;`}>
                 <Checkbox
-                  key={id}
-                  checked={id === flowerId}
-                  onChange={_ => setFlowerId(id)}
-                  name='flower-id'
+                  checked={growth === 'static'}
+                  onChange={_ => setGrowth('static')}
+                  name='growth-id'
                   type='radio'
                 >
-                  <svg height={26} css={css`padding: 3px`}>
-                    <use
-                      fill={id === flowerId ? palette.white : palette.flower}
-                      href={`flower-${id}.svg/#flower`}
-                      width={26}
-                      height={26}
-                    />
-                  </svg>
+                  𝟷
                 </Checkbox>
-              ))
-            }
-            <br />
-            {
-              [1,2,3,4].map(id => (
                 <Checkbox
-                  key={id}
-                  checked={id + 4 === flowerId}
-                  onChange={_ => setFlowerId(id + 4)}
-                  name='flower-id'
+                  checked={growth === 'linear'}
+                  onChange={_ => setGrowth('linear')}
+                  name='growth-id'
                   type='radio'
                 >
-                  <svg height={26} css={css`padding: 3px`}>
-                    <use
-                      fill={id + 4 === flowerId ? palette.white : palette.flower}
-                      href={`flower-${id + 4}.svg/#flower`}
-                      width={26}
-                      height={26}
-                    />
-                  </svg>
+                  𝓍
                 </Checkbox>
-              ))
-            }
-          </div>
+                <Checkbox
+                  checked={growth === 'exponential'}
+                  onChange={_ => setGrowth('exponential')}
+                  name='growth-id'
+                  type='radio'
+                >
+                  𝓍<sup>𝟸</sup>
+                </Checkbox>
+              </div>
 
-          <div css={css`text-align: center;`}>
-            <h3>Growth rate</h3>
-            <Checkbox
-              checked={growth === 'static'}
-              onChange={_ => setGrowth('static')}
-              name='growth-id'
-              type='radio'
-            >
-              𝟷
-            </Checkbox>
-            <Checkbox
-              checked={growth === 'linear'}
-              onChange={_ => setGrowth('linear')}
-              name='growth-id'
-              type='radio'
-            >
-              𝓍
-            </Checkbox>
-            <Checkbox
-              checked={growth === 'exponential'}
-              onChange={_ => setGrowth('exponential')}
-              name='growth-id'
-              type='radio'
-            >
-              𝓍<sup>𝟸</sup>
-            </Checkbox>
-          </div>
+              <hr />
 
+              <h3>Flowers</h3>
+
+              <Range
+                label='Minimum Flower size'
+                range={[0, 40, 1]}
+                value={flowerSize}
+                onChange={e => setFlowerSize(+e.target.value)}
+              />
+
+              <div css={css`text-align: center;`}>
+                {
+                  [...Array(8)].map((_, id) => (
+                    <>
+                      {id === 4 && <br />}
+                      <Checkbox
+                        key={id}
+                        checked={(id + 1) === flowerId}
+                        onChange={_ => setFlowerId(id + 1)}
+                        name='flower-id'
+                        type='radio'
+                      >
+                        <svg height={26} css={css`padding: 3px`}>
+                          <use
+                            fill={(id + 1) === flowerId ? palette.white : palette.flower}
+                            href={`flower-${id + 1}.svg/#flower`}
+                            width={26}
+                            height={26}
+                          />
+                        </svg>
+                      </Checkbox>
+                    </>
+                  ))
+                }
+              </div>
+
+              <Button block onClick={_ => setFlowerVis(!flowerVis)}>
+                {flowerVis ? 'Remove' : 'Add'} flowers
+              </Button>
+            </div>
+
+            <div label='Grammar'>
+              <Tabs>
+                <Definitions
+                  label='Definition'
+                  start={start}
+                  grammar={grammar}
+                  onChange={newGrammar => {
+                    setRotation(newGrammar[start].rotation)
+                    setGrammar(newGrammar)
+                  }}
+                />
+                <Controls
+                  label='Controls'
+                  start={start}
+                  grammar={grammar}
+                  onChange={newGrammar => {
+                    setRotation(newGrammar[start].rotation)
+                    setGrammar(newGrammar)
+                  }}
+                />
+
+              </Tabs>
+
+            </div>
+          </Tabs>
+
+          <hr />
           <Button
             block
             onClick={_ => {
@@ -298,7 +290,7 @@ const Home = ({
                 .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
             }}
           >
-            Copy url
+            Save this tree
           </Button>
 
         </Card>

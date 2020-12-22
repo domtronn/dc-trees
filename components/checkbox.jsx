@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import { jsx, css } from '@emotion/core'
 
-export const Checkbox = ({ name, children, ...props }) => (
+export const Checkbox = ({ name, variant, children, ...props }) => (
   <div
     css={css`
       font-weight: bold;
@@ -11,7 +11,7 @@ export const Checkbox = ({ name, children, ...props }) => (
       align-items: center;
       height: 32px;
       width: 32px;
-      margin: 0 8px;
+      margin: 8px;
     `}
   >
     <input
@@ -53,7 +53,7 @@ export const Checkbox = ({ name, children, ...props }) => (
         height: 32px;
         width: 32px;
         background-color: var(--white);
-        border: 2px solid var(--primary);
+        border: 2px solid ${variant === 'icon' ? 'transparent' : 'var(--primary)'};
         color: var(--primary);
         display: flex;
         justify-content: center;

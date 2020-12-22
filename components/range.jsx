@@ -28,12 +28,12 @@ const Input = styled.input`
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
     border: 2px solid var(--primary);
-    height: 30px;
-    width: 30px;
+    height: 20px;
+    width: 20px;
     border-radius: 50%;
     background: var(--white);
     cursor: pointer;
-    margin-top: -11px;
+    margin-top: -6px;
   }
 
   &::-webkit-slider-runnable-track {
@@ -50,6 +50,7 @@ const Input = styled.input`
 `
 
 const Container = styled.div`
+  margin: 8px auto;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -57,9 +58,9 @@ const Container = styled.div`
   align-items: flex-start;
 `
 
-export const Range = ({ label, value, valueF = _ => _, ...props }) => (
+export const Range = ({ label, range: [min, max, step] = [], value, valueF = _ => _, ...props }) => (
   <Container>
     <span>{label} {valueF(value)}</span>
-    <Input value={value} {...props} />
+    <Input type='range' value={value} min={min} max={max} step={step} {...props} />
   </Container>
 )
