@@ -27,6 +27,7 @@ export default function Tree ({
       style={{
         height: '100vh',
         position: 'fixed',
+        top: 0,
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',

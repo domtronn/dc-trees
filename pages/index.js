@@ -9,6 +9,11 @@ import Head from 'next/head'
  */
 
 import { useState, useEffect } from 'react'
+import { FiSettings } from 'react-icons/fi'
+import { FaRegEye } from 'react-icons/fa'
+import { GoBug } from 'react-icons/go'
+import { IoIosSave } from 'react-icons/io'
+
 import btoa from 'btoa'
 import atob from 'atob'
 
@@ -148,21 +153,11 @@ const Home = ({
         }}
       />
 
-      {true && (
+      {visible && (
         <Card>
           <Tabs
             size='lg'
           >
-            <div label='Settings'>
-              <Button block onClick={_ => animate(data, animationHandlers)}>
-                Animate
-              </Button>
-
-              <Button block onClick={_ => setDebug(!debug)}>
-                Debug
-              </Button>
-            </div>
-
             <div label='Tree'>
               <Range
                 label='Recursion depth'
@@ -281,20 +276,47 @@ const Home = ({
             </div>
           </Tabs>
 
-          <hr />
-          <Button
-            block
-            onClick={_ => {
-              navigator
-                .clipboard
-                .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
-            }}
-          >
-            Save this tree
-          </Button>
-
         </Card>
       )}
+
+      <div
+        style={{ zIndex: 2000, position: 'relative', pointerEvents: 'none' }}
+      >
+        <Checkbox
+          checked={visible}
+          onChange={_ => setCardVisible(!visible)}
+        >
+          <FiSettings />
+        </Checkbox>
+
+        <Checkbox
+          checked={debug}
+          onChange={_ => setDebug(!debug)}
+        >
+          <GoBug />
+        </Checkbox>
+
+        <br />
+        <Checkbox
+          checked={false}
+          onChange={_ => animate(data, animationHandlers)}
+        >
+          <FaRegEye />
+        </Checkbox>
+
+        <br />
+        <Checkbox
+          checked={false}
+          onChange={_ => {
+            navigator
+              .clipboard
+              .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
+          }}
+        >
+          <IoIosSave />
+        </Checkbox>
+
+      </div>
 
       <div css={{ position: 'relative' }}>
         <div
@@ -319,13 +341,15 @@ const Home = ({
               rotation={grammar[start].rotation}
               width={trunkWidth}
             >
-              <Flowers
-                data={data}
-                id={flowerId}
-                size={[Math.max(0, flowerSize - flowerSize / 3), flowerSize]}
-                animate={anim}
-                rotation={grammar[start].rotation}
-              />
+              {flowerVis && (
+                <Flowers
+                  data={data}
+                  id={flowerId}
+                  size={[Math.max(0, flowerSize - flowerSize / 3), flowerSize]}
+                  animate={anim}
+                  rotation={grammar[start].rotation}
+                />
+              )}
             </Tree>
             <Bank />
           </MeasureRender>

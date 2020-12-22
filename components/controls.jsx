@@ -24,7 +24,7 @@ export const Controls = ({ grammar: g, start, onChange = _ => _ }) => {
 
   return Object
     .entries(grammar)
-    .map(([name, { length, rotation }, i]) => (
+    .map(([name, { length, rotation }], i, arr) => (
       <>
         <div
           key={`${name}-${i}1`}
@@ -69,6 +69,7 @@ export const Controls = ({ grammar: g, start, onChange = _ => _ }) => {
             })}
           />
         </div>
+        {i !== arr.length - 1 && <hr />}
       </>
     ))
 }
@@ -86,7 +87,7 @@ export const Definitions = ({ grammar: g, start, onChange = _ => _ }) => {
       {
         Object
           .entries(grammar)
-          .map(([name, { length, rotation }, i]) => (
+          .map(([name, { length, rotation }], i, arr) => (
             <>
               <div
                 key={`${name}-${i}1`}
@@ -158,7 +159,7 @@ export const Definitions = ({ grammar: g, start, onChange = _ => _ }) => {
                   }
                 </div>
               </div>
-              <hr />
+              {i !== arr.length - 1 && <hr />}
             </>
           ))
       }

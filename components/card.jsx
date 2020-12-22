@@ -10,7 +10,7 @@ export const Card = styled.div`
 
 
   position: absolute;
-  top: 20px; left: 20px;
+  top: 24px; left: 24px;
 
   margin: 0 auto;
   max-width: 320px;

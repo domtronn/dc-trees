@@ -4,6 +4,7 @@ import { jsx, css } from '@emotion/core'
 export const Checkbox = ({ name, variant, children, ...props }) => (
   <div
     css={css`
+      pointer-events: initial;
       font-weight: bold;
       position: relative;
       display: inline-flex;
