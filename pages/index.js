@@ -106,7 +106,6 @@ const Home = ({
     growthFunctions[growth](layers)
   )
 
-  const boundingBox = boundingRect(data, grammar[start].rotation, [1000, 1000])
   const animationHandlers = {
     onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
   }
@@ -309,7 +308,6 @@ const Home = ({
               debug={debug}
               animate={anim}
               rotation={grammar[start].rotation}
-              size={[boundingBox.x, boundingBox.y]}
               width={trunkWidth}
             >
               <Flowers

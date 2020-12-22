@@ -2,8 +2,7 @@
 import { jsx } from '@emotion/core'
 import { mix } from 'polished'
 import palette from '../utils/palette'
-
-const DEBUG_SVG = false
+import { rotate } from '../utils/rotate'
 
 const col = (s, m, e, limit = 7) => (i, arr) => {
   return i < limit
@@ -18,54 +17,25 @@ export default function Tree ({
   animate = false,
   rotation = 0,
   width = 20,
-  size: [sx, sy] = [0, 0],
   children
 }) {
   return (
     <svg
       id='tree'
       className={`tree ${debug ? 'debug' : ''} ${animate ? 'animate' : ''}`}
-      viewBox={`${1000 - (sx / 2)} ${1000 - (sy / 2)} ${sx} ${sy}`}
+      viewBox='250 350 1500 750'
       style={{
-        height: 'calc(100vh - 80px)',
-        padding: 40,
+        height: '100vh',
+        position: 'fixed',
+        left: '50%',
+        transform: 'translateX(-50%)',
         display: 'flex',
-        margin: '0 auto',
+        marginLeft: 'auto',
+        marginRight: 'auto',
         opacity: 0
       }}
     >
-
-      {DEBUG_SVG && (
-        <>
-          <path
-            d='M0,1000L2000,1000'
-            stroke='red'
-            strokeWidth={2}
-          />
-          <path
-            d='M1000,0L1000,2000'
-            stroke='red'
-            strokeWidth={2}
-          />
-
-          <rect
-            x={1000 - (sx / 2)}
-            y={1000 - (sy / 2)}
-            width={sx}
-            height={sy}
-            stroke='green'
-            fill='none'
-            strokWidth={2}
-          />
-        </>
-      )}
-
-      <g
-        style={{
-          transformOrigin: `1000px 1000px`,
-          transform: `translate(${0}px, ${(sy / 2)}px) rotate(${rotation}rad)`
-        }}
-      >
+      <g>
         {
           data
             .map((layer, l, arr) => (
@@ -75,25 +45,30 @@ export default function Tree ({
                 data-layer={l}
               >
                 {
-                  layer.map(({ start, end, length, g }, i) => (
-                    <path
-                      className='branch'
-                      key={`${l}--${i}`}
-                      stroke={treecol(l, arr)}
+                  layer.map(({ start, end, length, g }, i) => {
+                    const [x0, y0] = rotate(start, [1000, 1000], rotation)
+                    const [x1, y1] = rotate(end, [1000, 1000], rotation)
 
-                      data-g={g}
-                      data-length={length}
-                      data-delay={l * 0.3}
+                    return (
+                      <path
+                        className='branch'
+                        key={`${l}--${i}`}
+                        stroke={treecol(l, arr)}
 
-                      strokeWidth={Math.max(width - l, 1)}
-                      strokeDasharray={`${length} ${length}`}
-                      strokeDashoffset={animate ? length : 0}
-                      d={`M${start[0]},${start[1]}L${end[0]},${end[1]}`}
-                      style={{
-                        transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
-                      }}
-                    />
-                  ))
+                        data-g={g}
+                        data-length={length}
+                        data-delay={l * 0.3}
+
+                        strokeWidth={Math.max(width - l, 1)}
+                        strokeDasharray={`${length} ${length}`}
+                        strokeDashoffset={animate ? length : 0}
+                        d={`M${x0},${y0}L${x1},${y1}`}
+                        style={{
+                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
+                        }}
+                      />
+                    )
+                  })
                 }
               </g>
             ))
@@ -101,6 +76,7 @@ export default function Tree ({
 
         {children}
       </g>
+
     </svg>
   )
 }
