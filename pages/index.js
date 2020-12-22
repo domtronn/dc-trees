@@ -28,6 +28,7 @@ import { Checkbox } from '../components/checkbox'
 import { MeasureRender } from '../components/measure'
 import Tree from '../components/tree'
 import Flowers from '../components/flowers'
+import Bank from '../components/bank'
 
 const growthFunctions = {
   linear: (layers) => (len, layer) => len - (layer * (len / (2 * layers))),
@@ -80,8 +81,7 @@ const Home = ({
   grammar: _grammar,
   layers: _layers = 9,
   flowerId: _flowerId = 1,
-  flowerMin: _flowerMin = 20,
-  flowerMax: _flowerMax = 28,
+  flowerSize: _flowerSize = 20,
   trunkWidth: _trunkWidth = 12,
   start = 'a'
 }) => {
@@ -89,8 +89,7 @@ const Home = ({
   const [grammar, setGrammar] = useState(_grammar)
   const [layers, setLayers] = useState(_layers)
   const [flowerId, setFlowerId] = useState(_flowerId)
-  const [flowerMin, setFlowerMin] = useState(_flowerMin)
-  const [flowerMax, setFlowerMax] = useState(_flowerMax)
+  const [flowerSize, setFlowerSize] = useState(_flowerSize)
   const [trunkWidth, setTrunkWidth] = useState(_trunkWidth)
   const [growth, setGrowth] = useState('static')
 
@@ -107,6 +106,7 @@ const Home = ({
     growthFunctions[growth](layers)
   )
 
+  const boundingBox = boundingRect(data, grammar[start].rotation, [1000, 1000])
   const animationHandlers = {
     onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
   }
@@ -115,8 +115,7 @@ const Home = ({
     grammar,
     layers,
     flowerId,
-    flowerMin,
-    flowerMax,
+    flowerSize,
     trunkWidth
   }
 
@@ -142,7 +141,7 @@ const Home = ({
         }}
       />
 
-      {visible && (
+      {true && (
         <Card>
           <Controls
             start={start}
@@ -195,21 +194,11 @@ const Home = ({
           <Range
             type='range'
             label='Minimum flower size'
-            min={5}
-            max={flowerMax}
+            min={0}
+            max={40}
             step={1}
-            value={flowerMin}
-            onChange={e => setFlowerMin(+e.target.value)}
-          />
-
-          <Range
-            label='Maximum flower size'
-            type='range'
-            min={flowerMin + 1}
-            max={flowerMin + 20}
-            step={1}
-            value={flowerMax}
-            onChange={e => setFlowerMax(+e.target.value)}
+            value={flowerSize}
+            onChange={e => setFlowerSize(+e.target.value)}
           />
 
           <div css={css`text-align: center;`}>
@@ -320,30 +309,20 @@ const Home = ({
               debug={debug}
               animate={anim}
               rotation={grammar[start].rotation}
+              size={[boundingBox.x, boundingBox.y]}
               width={trunkWidth}
             >
               <Flowers
                 data={data}
                 id={flowerId}
-                size={[flowerMin, flowerMax]}
+                size={[Math.max(0, flowerSize - flowerSize / 3), flowerSize]}
                 animate={anim}
                 rotation={grammar[start].rotation}
               />
             </Tree>
+            <Bank />
           </MeasureRender>
         </div>
-
-        <svg
-          style={{
-            position: 'fixed',
-            bottom: -10
-          }}
-          xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'>
-          <path
-            fill={palette.grass}
-            d='M0,64L40,74.7C80,85,160,107,240,112C320,117,400,107,480,122.7C560,139,640,181,720,181.3C800,181,880,139,960,133.3C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z'
-          />
-        </svg>
 
       </div>
     </>
