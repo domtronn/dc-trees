@@ -24,18 +24,20 @@ export class MeasureRender extends React.Component {
 
     this.mounted = true
     window.performance.mark(`${name}MountEnd`)
-    console.log(
-      `${name} render:\t`, window.performance.measure(`${name}Mount`, `${name}MountStart`, `${name}MountEnd`).duration
-    )
+    const measure = window.performance.measure(`${name}Mount`, `${name}MountStart`, `${name}MountEnd`) || {}
+
+    if (!measure.duration) return
+    console.log(`${name} render:\t`, measure.duration)
   }
 
   componentDidUpdate() {
     const { name } = this.props
     if (typeof window === 'undefined') return
 
-    window.performance.mark(`${name}UpdateEnd`)
-    console.log(
-      `${name} render:\t`, window.performance.measure(`${name}Update`, `${name}UpdateStart`, `${name}UpdateEnd`).duration
-    )
+    window.performance.mark(`${name}MountEnd`)
+    const measure = window.performance.measure(`${name}Mount`, `${name}MountStart`, `${name}MountEnd`) || {}
+
+    if (!measure.duration) return
+    console.log(`${name} render:\t`, measure.duration)
   }
 }
