@@ -49,7 +49,7 @@ export default function Flowers ({
                   opacity: animate ? 0 : 1,
                   transform: `rotate(${((i / Math.PI) % (Math.PI / 4)) - (Math.PI / 8)}rad)`,
                   transformOrigin: `${x}px ${y}px`,
-                  transition: `opacity 0.2s ease-in-out ${(data.length * 0.3) + (0.1 * (i % 20))}s, all 0.2s ease-in-out 0s`
+                  transition: `opacity 0.2s ease-in-out ${(data.length * 0.3) + (0.1 * (i % 20))}s, fill 0.2s ease-in-out 0s`
                 }}
               />
             )

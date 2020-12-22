@@ -15,6 +15,7 @@ const Input = styled.input`
   }
 
   &:hover::-webkit-slider-thumb {
+    transition: all 0.2s ease-in-out;
     background-color: ${p => mix(0.2, p.palette.flower, p.palette.white)}
   }
 
@@ -39,6 +40,7 @@ const Input = styled.input`
     height: 8px;
     cursor: pointer;
     background: var(--primary);
+    transition: all 0.2s ease-in-out;
     border-radius: 4px;
   }
 

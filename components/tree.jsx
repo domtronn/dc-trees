@@ -68,7 +68,7 @@ export default function Tree ({
                         strokeDashoffset={animate ? length : 0}
                         d={`M${x0},${y0}L${x1},${y1}`}
                         style={{
-                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s, all 0.2s ease-in-out 0s`
+                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s, stroke 0.2s ease-in-out 0s`
                         }}
                       />
                     )

@@ -21,6 +21,7 @@ import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
 
 import palettes, { PaletteProvider } from '../utils/palette'
+import { getContrast } from 'polished'
 
 import { Controls, Definitions } from '../components/controls'
 
@@ -146,7 +147,7 @@ const Home = ({
             sup { margin-bottom: 8px; }
             :root {
              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-              --primary: ${palette.flower};
+              --primary: ${getContrast(palette.flower, palette.white) > 2 ? palette.flower : palette.black};
               --white: ${palette.white};
               --black: ${palette.black};
             }
@@ -238,7 +239,7 @@ const Home = ({
                         >
                           <svg height={26} css={css`padding: 3px`}>
                             <use
-                              fill={(id + 1) === flowerId ? palette.white : palette.flower}
+                              fill={(id + 1) === flowerId ? palette.white : (getContrast(palette.flower, palette.white) > 2 ? palette.flower : palette.black)}
                               href={`flower-${id + 1}.svg/#flower`}
                               width={26}
                               height={26}
