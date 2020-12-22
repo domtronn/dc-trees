@@ -17,7 +17,8 @@ const accumulate = (grammar, arr, offset = 0, start = [0, 0], layer, magF) => []
   })
 
 export const generate = (grammar = {}, levels = 1, start = 'a', startPos = [500, 500], magF = _ => _) => {
-  return Array(levels)
+  const t0 = new Date()
+  const result = Array(levels)
     .fill()
     .reduce((acc, it, i, arr) => [
       ...acc,
@@ -25,4 +26,6 @@ export const generate = (grammar = {}, levels = 1, start = 'a', startPos = [500,
         accumulate(grammar, grammars(grammar[g].next), rotation, end, i, magF)
       ), [])
     ], [accumulate(grammar, start, 0, startPos, 0, magF)])
+  console.log('Grammar generation:\t', new Date() - t0, 'ms')
+  return result
 }

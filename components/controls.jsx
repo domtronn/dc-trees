@@ -31,7 +31,7 @@ const Controls = ({ grammar: g, start, onChange = _ => _ }) => {
           .entries(grammar)
           .map(([name, { length, rotation }, i]) => (
             <div
-              key={i}
+              key={`${name}-${i}`}
               css={css`display: flex; flex-direction: column; align-items: center;`}
             >
               <h2 css={css`margin: 0 16px;`}>{name}</h2>
@@ -128,8 +128,8 @@ const Controls = ({ grammar: g, start, onChange = _ => _ }) => {
           ...grammar,
           [nextGrammar(grammar)]: {
             next: [],
-            length: 10,
-            rotation: 0
+            length: 20,
+            rotation: Math.PI / 2
           }
         })}
       >
