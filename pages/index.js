@@ -16,7 +16,6 @@ import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
 
 import palette from '../utils/palette'
-import { boundingRect } from '../utils/bounding-box'
 
 import Controls from '../components/controls'
 
@@ -30,10 +29,12 @@ import Tree from '../components/tree'
 import Flowers from '../components/flowers'
 import Bank from '../components/bank'
 
+const pluck = (arr, o) => arr.reduce((acc, it) => ({ ...acc, [it]: o[it] }), {})
+
 const growthFunctions = {
-  linear: (layers) => (len, layer) => len - (layer * (len / (2 * layers))),
-  exponential: (layers) => (len, layer) => len * (1 / (layer + 1)),
-  static: (layers) => (len) => len,
+  linear: (layers, scale) => (len, layer) => (len - (layer * (len / (2 * layers)))) * scale,
+  exponential: (layers, scale) => (len, layer) => (len * (1 / (layer + 1))) * scale,
+  static: (layers, scale) => (len) => len * scale,
 }
 
 const animate = (data, { onStart, onEnd }) => {
@@ -83,6 +84,8 @@ const Home = ({
   flowerId: _flowerId = 1,
   flowerSize: _flowerSize = 20,
   trunkWidth: _trunkWidth = 12,
+  growth: _growth = 'linear',
+  scaleCoef: _scaleCoef = 1,
   start = 'a'
 }) => {
   const [rotation, setRotation] = useState(_grammar[start].rotation)
@@ -91,7 +94,9 @@ const Home = ({
   const [flowerId, setFlowerId] = useState(_flowerId)
   const [flowerSize, setFlowerSize] = useState(_flowerSize)
   const [trunkWidth, setTrunkWidth] = useState(_trunkWidth)
-  const [growth, setGrowth] = useState('static')
+  const [growth, setGrowth] = useState(_growth)
+
+  const [scaleCoef, setScaleCoef] = useState(_scaleCoef)
 
   const [anim, setAnim] = useState(false)
   const [debug, setDebug] = useState(false)
@@ -103,7 +108,7 @@ const Home = ({
     layers,
     start,
     [1000, 1000],
-    growthFunctions[growth](layers)
+    growthFunctions[growth](layers, scaleCoef)
   )
 
   const animationHandlers = {
@@ -112,10 +117,12 @@ const Home = ({
 
   const settings = {
     grammar,
+    growth,
     layers,
     flowerId,
     flowerSize,
-    trunkWidth
+    trunkWidth,
+    scaleCoef
   }
 
   useEffect(() => animate(data, animationHandlers), [])
@@ -178,6 +185,16 @@ const Home = ({
             step={1}
             value={layers}
             onChange={e => setLayers(+e.target.value)}
+          />
+
+          <Range
+            label='Scale'
+            type='range'
+            min={1}
+            max={3}
+            step={0.1}
+            value={scaleCoef}
+            onChange={e => setScaleCoef(+e.target.value)}
           />
 
           <Range
@@ -278,7 +295,7 @@ const Home = ({
             onClick={_ => {
               navigator
                 .clipboard
-                .writeText(`http://localhost:3000/?settings=${btoa(JSON.stringify(settings))}`)
+                .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
             }}
           >
             Copy url
@@ -360,9 +377,12 @@ export async function getServerSideProps ({ query }) {
 
   if (query.settings) {
     try {
-      const { grammar, layers, flowerMin, flowerMax, flowerId, trunkWidth } =
-            JSON.parse(atob(query.settings))
-      return { props: { grammar, layers, flowerMin, flowerMax, flowerId, trunkWidth } }
+      return {
+        props: pluck(
+          [ 'grammar', 'growth', 'layers', 'flowerSize', 'scaleCoef', 'flowerId', 'trunkWidth' ],
+          JSON.parse(atob(query.settings))
+        )
+      }
     } catch (e) {
       return handleDefault()
     }
