@@ -19,7 +19,7 @@ export const Button = styled.button`
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     opacity: 0.2;
-    transition: background-color 0.2s linear;
+    transition: all 0.2s linear;
   }
 
   &:hover {

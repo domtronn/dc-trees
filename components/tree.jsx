@@ -1,15 +1,15 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
 import { mix } from 'polished'
-import palette from '../utils/palette'
 import { rotate } from '../utils/rotate'
+
+import { usePalette } from '../utils/palette'
 
 const col = (s, m, e, limit = 7) => (i, arr) => {
   return i < limit
     ? mix(i / (limit - 1), m, s)
     : mix((i - limit) / (arr.length - limit), e, m)
 }
-const treecol = col(palette.wood, palette.branch, palette.white, 5)
 
 export default function Tree ({
   data = [],
@@ -19,6 +19,9 @@ export default function Tree ({
   width = 20,
   children
 }) {
+  const palette = usePalette()
+  const treecol = col(palette.wood, palette.branch, palette.white, 5)
+
   return (
     <svg
       id='tree'
@@ -65,7 +68,7 @@ export default function Tree ({
                         strokeDashoffset={animate ? length : 0}
                         d={`M${x0},${y0}L${x1},${y1}`}
                         style={{
-                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s`
+                          transition: `stroke-dashoffset 0.3s linear ${l * 0.3}s, all 0.2s ease-in-out 0s`
                         }}
                       />
                     )

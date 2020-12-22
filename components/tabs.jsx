@@ -3,7 +3,7 @@ import { jsx, css } from '@emotion/core'
 import { useState, Children } from 'react'
 
 import styled from '@emotion/styled'
-import palette from '../utils/palette'
+import { usePalette } from '../utils/palette'
 import { mix } from 'polished'
 
 const Ol = styled.ol`
@@ -23,10 +23,10 @@ const Li = styled.li`
   border-bottom: ${p => p.active ? '3px solid var(--primary)' : '3px solid transparent'};
   color: var(--${p => p.active ? 'primary' : 'black'});
   margin: 4px 8px;
-  transition: border-bottom-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   &:hover {
     cursor: pointer;
-    border-bottom: 3px solid ${p => p.active ? 'inherit' : mix(0.2, palette.flower, palette.white)};
+    border-bottom: 3px solid ${p => p.active ? 'inherit' : mix(0.2, p.palette.flower, p.palette.white)};
   }
 `
 
@@ -35,12 +35,14 @@ export const Tabs = ({
   size
 }) => {
   const [activeTab, setActiveTab] = useState(0)
+  const palette = usePalette()
 
   return (
     <div>
       <Ol size={size}>
         {Children.map(children, (child, i) => (
           <Li
+            palette={palette}
             size={size}
             key={i}
             active={activeTab === i}

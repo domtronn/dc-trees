@@ -64,7 +64,7 @@ export const Checkbox = ({ name, variant, children, ...props }) => (
         &:before {
           content: '';
           border-radius: inherit;
-          transition: background-color 0.2s ease-in-out;
+          transition: all 0.2s ease-in-out 0s;
           opacity: 0.2;
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;

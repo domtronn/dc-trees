@@ -20,7 +20,7 @@ import atob from 'atob'
 import { generate } from '../utils/generate-grammar'
 import { jsx, css } from '@emotion/core'
 
-import palette from '../utils/palette'
+import palettes, { PaletteProvider } from '../utils/palette'
 
 import { Controls, Definitions } from '../components/controls'
 
@@ -109,6 +109,8 @@ const Home = ({
   const [visible, setCardVisible] = useState(false)
   const [flowerVis, setFlowerVis] = useState(true)
 
+  const [paletteId, setPaletteId] = useState(0)
+
   const data = generate(
     grammar,
     layers,
@@ -121,6 +123,7 @@ const Home = ({
     onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
   }
 
+  const palette = palettes[paletteId]
   const settings = {
     grammar,
     growth,
@@ -135,9 +138,11 @@ const Home = ({
 
   return (
     <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+      <PaletteProvider value={palette}>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+            * { transition: all 0.2s ease-in-out; }
             sup { margin-bottom: 8px; }
             :root {
              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -150,212 +155,231 @@ const Home = ({
             .tree { z-index: 5; position: relative; }
             .flower { opacity: 0; }
             .debug .flower { display: none; }`
-        }}
-      />
-
-      {visible && (
-        <Card>
-          <Tabs
-            size='lg'
-          >
-            <div label='Tree'>
-              <Range
-                label='Recursion depth'
-                range={[0, 12, 1]}
-                value={layers}
-                onChange={e => setLayers(+e.target.value)}
-              />
-
-              <Range
-                label='Brach scale'
-                range={[1, 3, 0.1]}
-                value={scaleCoef}
-                onChange={e => setScaleCoef(+e.target.value)}
-              />
-
-              <Range
-                label='Branch width'
-                range={[5, 20, 1]}
-                value={trunkWidth}
-                onChange={e => setTrunkWidth(+e.target.value)}
-              />
-
-              <h3>Growth rate</h3>
-              <div css={css`text-align: center; margin-top: -12px;`}>
-                <Checkbox
-                  checked={growth === 'static'}
-                  onChange={_ => setGrowth('static')}
-                  name='growth-id'
-                  type='radio'
-                >
-                  𝟷
-                </Checkbox>
-                <Checkbox
-                  checked={growth === 'linear'}
-                  onChange={_ => setGrowth('linear')}
-                  name='growth-id'
-                  type='radio'
-                >
-                  𝓍
-                </Checkbox>
-                <Checkbox
-                  checked={growth === 'exponential'}
-                  onChange={_ => setGrowth('exponential')}
-                  name='growth-id'
-                  type='radio'
-                >
-                  𝓍<sup>𝟸</sup>
-                </Checkbox>
-              </div>
-
-              <hr />
-
-              <h3>Flowers</h3>
-
-              <Range
-                label='Minimum Flower size'
-                range={[0, 40, 1]}
-                value={flowerSize}
-                onChange={e => setFlowerSize(+e.target.value)}
-              />
-
-              <div css={css`text-align: center;`}>
-                {
-                  [...Array(8)].map((_, id) => (
-                    <>
-                      {id === 4 && <br />}
-                      <Checkbox
-                        key={id}
-                        checked={(id + 1) === flowerId}
-                        onChange={_ => setFlowerId(id + 1)}
-                        name='flower-id'
-                        type='radio'
-                      >
-                        <svg height={26} css={css`padding: 3px`}>
-                          <use
-                            fill={(id + 1) === flowerId ? palette.white : palette.flower}
-                            href={`flower-${id + 1}.svg/#flower`}
-                            width={26}
-                            height={26}
-                          />
-                        </svg>
-                      </Checkbox>
-                    </>
-                  ))
-                }
-              </div>
-
-              <Button block onClick={_ => setFlowerVis(!flowerVis)}>
-                {flowerVis ? 'Remove' : 'Add'} flowers
-              </Button>
-            </div>
-
-            <div label='Grammar'>
-              <Tabs>
-                <Definitions
-                  label='Definition'
-                  start={start}
-                  grammar={grammar}
-                  onChange={newGrammar => {
-                    setRotation(newGrammar[start].rotation)
-                    setGrammar(newGrammar)
-                  }}
-                />
-                <Controls
-                  label='Controls'
-                  start={start}
-                  grammar={grammar}
-                  onChange={newGrammar => {
-                    setRotation(newGrammar[start].rotation)
-                    setGrammar(newGrammar)
-                  }}
-                />
-
-              </Tabs>
-
-            </div>
-          </Tabs>
-
-        </Card>
-      )}
-
-      <div
-        style={{ zIndex: 2000, position: 'relative', pointerEvents: 'none' }}
-      >
-        <Checkbox
-          checked={visible}
-          onChange={_ => setCardVisible(!visible)}
-        >
-          <FiSettings />
-        </Checkbox>
-
-        <Checkbox
-          checked={debug}
-          onChange={_ => setDebug(!debug)}
-        >
-          <GoBug />
-        </Checkbox>
-
-        <br />
-        <Checkbox
-          checked={false}
-          onChange={_ => animate(data, animationHandlers)}
-        >
-          <FaRegEye />
-        </Checkbox>
-
-        <br />
-        <Checkbox
-          checked={false}
-          onChange={_ => {
-            navigator
-              .clipboard
-              .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
           }}
-        >
-          <IoIosSave />
-        </Checkbox>
+        />
 
-      </div>
+        {visible && (
+          <Card>
+            <Tabs
+              size='lg'
+            >
+              <div label='Tree'>
+                <Range
+                  label='Recursion depth'
+                  range={[0, 12, 1]}
+                  value={layers}
+                  onChange={e => setLayers(+e.target.value)}
+                />
 
-      <div css={{ position: 'relative' }}>
+                <Range
+                  label='Brach scale'
+                  range={[1, 3, 0.1]}
+                  value={scaleCoef}
+                  onChange={e => setScaleCoef(+e.target.value)}
+                />
+
+                <Range
+                  label='Branch width'
+                  range={[5, 20, 1]}
+                  value={trunkWidth}
+                  onChange={e => setTrunkWidth(+e.target.value)}
+                />
+
+                <h3>Growth rate</h3>
+                <div css={css`text-align: center; margin-top: -12px;`}>
+                  <Checkbox
+                    checked={growth === 'static'}
+                    onChange={_ => setGrowth('static')}
+                    name='growth-id'
+                    type='radio'
+                  >
+                    𝟷
+                  </Checkbox>
+                  <Checkbox
+                    checked={growth === 'linear'}
+                    onChange={_ => setGrowth('linear')}
+                    name='growth-id'
+                    type='radio'
+                  >
+                    𝓍
+                  </Checkbox>
+                  <Checkbox
+                    checked={growth === 'exponential'}
+                    onChange={_ => setGrowth('exponential')}
+                    name='growth-id'
+                    type='radio'
+                  >
+                    𝓍<sup>𝟸</sup>
+                  </Checkbox>
+                </div>
+
+                <hr />
+
+                <h3>Flowers</h3>
+
+                <Range
+                  label='Minimum Flower size'
+                  range={[0, 40, 1]}
+                  value={flowerSize}
+                  onChange={e => setFlowerSize(+e.target.value)}
+                />
+
+                <div css={css`text-align: center;`}>
+                  {
+                    [...Array(8)].map((_, id) => (
+                      <>
+                        {id === 4 && <br />}
+                        <Checkbox
+                          key={id}
+                          checked={(id + 1) === flowerId}
+                          onChange={_ => setFlowerId(id + 1)}
+                          name='flower-id'
+                          type='radio'
+                        >
+                          <svg height={26} css={css`padding: 3px`}>
+                            <use
+                              fill={(id + 1) === flowerId ? palette.white : palette.flower}
+                              href={`flower-${id + 1}.svg/#flower`}
+                              width={26}
+                              height={26}
+                            />
+                          </svg>
+                        </Checkbox>
+                      </>
+                    ))
+                  }
+                </div>
+
+                <Button block onClick={_ => setFlowerVis(!flowerVis)}>
+                  {flowerVis ? 'Remove' : 'Add'} flowers
+                </Button>
+
+                <div css={css`text-align: center;`}>
+                  {
+                    palettes.map((p, id) => (
+                      <>
+                        <Checkbox
+                          key={id}
+                          checked={id === paletteId}
+                          onChange={_ => setPaletteId(id)}
+                          name='palette-id'
+                          type='radio'
+                        >
+                          <div css={css`width: 20px; height: 20px; border-radius: 50%; background-color: ${p.flower}; border: 4px solid var(--white);`} />
+                        </Checkbox>
+                      </>
+                    ))
+                  }
+                </div>
+              </div>
+
+              <div label='Grammar'>
+                <Tabs>
+                  <Definitions
+                    label='Definition'
+                    start={start}
+                    grammar={grammar}
+                    onChange={newGrammar => {
+                      setRotation(newGrammar[start].rotation)
+                      setGrammar(newGrammar)
+                    }}
+                  />
+                  <Controls
+                    label='Controls'
+                    start={start}
+                    grammar={grammar}
+                    onChange={newGrammar => {
+                      setRotation(newGrammar[start].rotation)
+                      setGrammar(newGrammar)
+                    }}
+                  />
+
+                </Tabs>
+
+              </div>
+            </Tabs>
+
+          </Card>
+        )}
+
         <div
-          css={css`
+          style={{ zIndex: 2000, position: 'relative', pointerEvents: 'none' }}
+        >
+          <Checkbox
+            checked={visible}
+            onChange={_ => setCardVisible(!visible)}
+          >
+            <FiSettings />
+          </Checkbox>
+
+          <Checkbox
+            checked={debug}
+            onChange={_ => setDebug(!debug)}
+          >
+            <GoBug />
+          </Checkbox>
+
+          <br />
+          <Checkbox
+            checked={false}
+            onChange={_ => animate(data, animationHandlers)}
+          >
+            <FaRegEye />
+          </Checkbox>
+
+          <br />
+          <Checkbox
+            checked={false}
+            onChange={_ => {
+              navigator
+                .clipboard
+                .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
+            }}
+          >
+            <IoIosSave />
+          </Checkbox>
+
+        </div>
+
+        <div css={{ position: 'relative' }}>
+          <div
+            css={css`
         .debug path[data-g='a'] { stroke: #ff595e !important; }
         .debug path[data-g='b'] { stroke: #ffca3a !important; }
         .debug path[data-g='c'] { stroke: #8ac926 !important; }
         .debug path[data-g='d'] { stroke: #1982c4 !important; }
         .debug path[data-g='e'] { stroke: #6a4c93 !important; }
         `}
-          style={{
-            position: 'relative',
-            overflow: 'hidden',
-            maxWidth: '100vw'
-          }}
-        >
-          <MeasureRender name='tree'>
-            <Tree
-              data={data}
-              debug={debug}
-              animate={anim}
-              rotation={grammar[start].rotation}
-              width={trunkWidth}
-            >
-              {flowerVis && (
-                <Flowers
-                  data={data}
-                  id={flowerId}
-                  size={[Math.max(0, flowerSize - flowerSize / 3), flowerSize]}
-                  animate={anim}
-                  rotation={grammar[start].rotation}
-                />
-              )}
-            </Tree>
-            <Bank />
-          </MeasureRender>
-        </div>
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              maxWidth: '100vw'
+            }}
+          >
+            <MeasureRender name='tree'>
+              <Tree
+                data={data}
+                debug={debug}
+                animate={anim}
+                rotation={grammar[start].rotation}
+                width={trunkWidth}
+              >
+                {flowerVis && (
+                  <Flowers
+                    data={data}
+                    id={flowerId}
+                    size={[Math.max(0, flowerSize - flowerSize / 3), flowerSize]}
+                    animate={anim}
+                    rotation={grammar[start].rotation}
+                  />
+                )}
+              </Tree>
+              <Bank />
+            </MeasureRender>
+          </div>
 
-      </div>
+        </div>
+      </PaletteProvider>
     </>
   )
 }

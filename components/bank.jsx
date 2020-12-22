@@ -1,6 +1,7 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
-import palette from '../utils/palette'
+
+import { usePalette } from '../utils/palette'
 
 import { lighten } from 'polished'
 
@@ -8,14 +9,17 @@ const Hill = ({
   offset = 0,
   layer = 0,
   d
-}) => (
-  <path
-    style={{ transform: `translateY(${offset}px)` }}
-    fill={lighten(0.1 * layer, palette.grass)}
-    fillOpacity='1'
-    d={d}
-  />
-)
+}) => {
+  const palette = usePalette()
+  return (
+    <path
+      style={{ transform: `translateY(${offset}px)` }}
+      fill={lighten(0.1 * layer, palette.grass)}
+      fillOpacity='1'
+      d={d}
+    />
+  )
+}
 
 const paths = [
   'M0,160L30,160C60,160,120,160,180,170.7C240,181,300,203,360,186.7C420,171,480,117,540,106.7C600,96,660,128,720,165.3C780,203,840,245,900,240C960,235,1020,181,1080,181.3C1140,181,1200,235,1260,224C1320,213,1380,139,1410,101.3L1440,64L1440,320L1410,320C1380,320,1320,320,1260,320C1200,320,1140,320,1080,320C1020,320,960,320,900,320C840,320,780,320,720,320C660,320,600,320,540,320C480,320,420,320,360,320C300,320,240,320,180,320C120,320,60,320,30,320L0,320Z',

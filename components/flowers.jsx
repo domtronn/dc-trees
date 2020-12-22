@@ -2,7 +2,7 @@
 import { jsx } from '@emotion/core'
 import { mix, lighten } from 'polished'
 
-import palette from '../utils/palette'
+import { usePalette } from '../utils/palette'
 import { rotate } from '../utils/rotate'
 
 export default function Flowers ({
@@ -12,6 +12,8 @@ export default function Flowers ({
   rotation = 0,
   size: [min, max] = [10, 11]
 }) {
+  const palette = usePalette()
+
   return (
     <g id='flowers'>
       {
@@ -47,7 +49,7 @@ export default function Flowers ({
                   opacity: animate ? 0 : 1,
                   transform: `rotate(${((i / Math.PI) % (Math.PI / 4)) - (Math.PI / 8)}rad)`,
                   transformOrigin: `${x}px ${y}px`,
-                  transition: `opacity 0.2s ease-in-out ${(data.length * 0.3) + (0.1 * (i % 20))}s`
+                  transition: `opacity 0.2s ease-in-out ${(data.length * 0.3) + (0.1 * (i % 20))}s, all 0.2s ease-in-out 0s`
                 }}
               />
             )

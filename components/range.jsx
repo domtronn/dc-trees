@@ -1,23 +1,21 @@
-import { useState } from 'react'
-
 import styled from '@emotion/styled'
 
-import palette from '../utils/palette'
+import { usePalette } from '../utils/palette'
 import { mix } from 'polished'
 
 const Input = styled.input`
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
   width: 100%; /* Specific width is required for Firefox. */
-  background: ${palette.white}; /* Otherwise white in Chrome */
+  background: ${p => p.palette.white}; /* Otherwise white in Chrome */
   margin: 12px 0;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
-    transition: background-color 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
   }
 
   &:hover::-webkit-slider-thumb {
-    background-color: ${mix(0.2, palette.flower, palette.white)}
+    background-color: ${p => mix(0.2, p.palette.flower, p.palette.white)}
   }
 
   &:focus {
@@ -58,9 +56,26 @@ const Container = styled.div`
   align-items: flex-start;
 `
 
-export const Range = ({ label, range: [min, max, step] = [], value, valueF = _ => _, ...props }) => (
-  <Container>
-    <span>{label} {valueF(value)}</span>
-    <Input type='range' value={value} min={min} max={max} step={step} {...props} />
-  </Container>
-)
+export const Range = ({
+  range: [min, max, step] = [],
+  label,
+  value,
+  valueF = _ => _,
+  ...props
+}) => {
+  const palette = usePalette()
+  return (
+    <Container>
+      <span>{label} {valueF(value)}</span>
+      <Input
+        palette={palette}
+        type='range'
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        {...props}
+      />
+    </Container>
+  )
+}
