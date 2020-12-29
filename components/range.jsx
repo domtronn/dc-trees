@@ -1,7 +1,7 @@
 import styled from '@emotion/styled'
 
 import { usePalette } from '../utils/palette'
-import { mix } from 'polished'
+import { mix } from 'tinycolor2'
 
 const Input = styled.input`
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
@@ -16,7 +16,7 @@ const Input = styled.input`
 
   &:hover::-webkit-slider-thumb {
     transition: all 0.2s ease-in-out;
-    background-color: ${p => mix(0.2, p.palette.flower, p.palette.white)}
+    background-color: ${p => mix(p.palette.flower, p.palette.white, 20)}
   }
 
   &:focus {

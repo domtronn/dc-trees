@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
-import { mix, lighten } from 'polished'
+import tc, { mix } from 'tinycolor2'
 
 import { usePalette } from '../utils/palette'
 import { rotate } from '../utils/rotate'
@@ -33,10 +33,8 @@ export default function Flowers ({
                 href={`flower-${id}.svg#flower`}
                 className='flower'
                 fill={
-                  lighten(
-                    0.01 * (i % 4),
-                    mix(1 / (5 - (i % 5)), palette.flower, palette.flower2)
-                  )
+                  tc(mix(palette.flower, palette.flower2, 1 / (5 - (i % 5)) * 20))
+                    .lighten(3 * (i % 4))
                 }
                 height={size}
                 width={size}

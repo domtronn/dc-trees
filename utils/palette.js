@@ -11,6 +11,15 @@ const palettes = [
     black: '#2b2b2b',
   },
   {
+    flower: '#0e4627',
+    flower2: '#7aaa7d',
+    wood: '#6e4922',
+    branch: '#856a45',
+    grass: '#568e13',
+    white: '#fffffc',
+    black: '#2b2b2b',
+  },
+  {
     flower: '#da2c38',
     flower2: '#ffff3f',
     wood: '#43291f',

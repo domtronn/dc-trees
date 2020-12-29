@@ -1,14 +1,14 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
-import { mix } from 'polished'
+import { mix } from 'tinycolor2'
 import { rotate } from '../utils/rotate'
 
 import { usePalette } from '../utils/palette'
 
 const col = (s, m, e, limit = 7) => (i, arr) => {
   return i < limit
-    ? mix(i / (limit - 1), m, s)
-    : mix((i - limit) / (arr.length - limit), e, m)
+    ? mix(s, m, i / (limit - 1) * 100)
+    : mix(m, e, 100 * ((i - limit) / (arr.length - limit)))
 }
 
 export default function Tree ({
@@ -17,7 +17,8 @@ export default function Tree ({
   animate = false,
   rotation = 0,
   width = 20,
-  children
+  children,
+  className
 }) {
   const palette = usePalette()
   const treecol = col(palette.wood, palette.branch, palette.white, 5)
@@ -25,7 +26,7 @@ export default function Tree ({
   return (
     <svg
       id='tree'
-      className={`tree ${debug ? 'debug' : ''} ${animate ? 'animate' : ''}`}
+      className={`${className || ''} tree ${debug ? 'debug' : ''} ${animate ? 'animate' : ''}`}
       viewBox='250 350 1500 750'
       style={{
         height: '100vh',

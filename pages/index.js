@@ -1,5 +1,6 @@
 /** @jsx jsx */
 import Head from 'next/head'
+import { jsx, css } from '@emotion/core'
 
 /**
    TODO: highlight branches when modifyin grammars
@@ -9,81 +10,53 @@ import Head from 'next/head'
  */
 
 import { useState, useEffect } from 'react'
-import { FiSettings } from 'react-icons/fi'
+import Haikunator from 'haikunator'
+
+import { FiSettings, FiDownload } from 'react-icons/fi'
 import { FaRegEye } from 'react-icons/fa'
 import { GoBug } from 'react-icons/go'
 import { IoIosSave } from 'react-icons/io'
 
-import btoa from 'btoa'
-import atob from 'atob'
-
-import { generate } from '../utils/generate-grammar'
-import { jsx, css } from '@emotion/core'
-
 import palettes, { PaletteProvider } from '../utils/palette'
-import { getContrast } from 'polished'
+import { readability } from 'tinycolor2'
 
 import { Controls, Definitions } from '../components/controls'
+import toast, { Toaster } from 'react-hot-toast'
 
+/** Control components */
 import { Card } from '../components/card'
 import { Button } from '../components/button'
 import { Range } from '../components/range'
 import { Checkbox } from '../components/checkbox'
 import { Tabs } from '../components/tabs'
 
+/** Render components */
 import { MeasureRender } from '../components/measure'
 import Tree from '../components/tree'
 import Flowers from '../components/flowers'
 import Bank from '../components/bank'
+
+/** Utils */
+import btoa from 'btoa'
+import atob from 'atob'
+import { generate } from '../utils/generate-grammar'
+import { download } from '../utils/download'
+import { animate, unanimate } from '../utils/animation'
 
 const pluck = (arr, o) => arr.reduce((acc, it) => ({ ...acc, [it]: o[it] }), {})
 
 const growthFunctions = {
   linear: (layers, scale) => (len, layer) => (len - (layer * (len / (2 * layers)))) * scale,
   exponential: (layers, scale) => (len, layer) => (len * (1 / (layer + 1))) * scale,
-  static: (layers, scale) => (len) => len * scale,
+  static: (layers, scale) => (len) => len * scale
 }
 
-const animate = (data, { onStart, onEnd }) => {
-  onStart()
-  document
-    .getElementById('tree')
-    .style
-    .opacity = 1
-
-  ;[...document.querySelectorAll('.branch')]
-    .forEach(p => {
-      p.style.transitionDuration = '0s'
-      p.style.transitionDelay = '0s'
-      p.style.strokeDashoffset = p.getAttribute('data-length')
-    })
-
-  ;[...document.querySelectorAll('.flower')]
-    .forEach(p => {
-      p.style.transitionDuration = '0s'
-      p.style.transitionDelay = '0s'
-      p.style.opacity = 0
-    })
-
-  setTimeout(_ => {
-    [...document.querySelectorAll('.branch')]
-      .forEach(p => {
-        p.style.transitionDuration = '0.3s'
-        p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
-        p.style.strokeDashoffset = 0
-      })
-    ;[...document.querySelectorAll('.flower')]
-      .forEach(p => {
-        p.style.transitionDuration = '0.2s'
-        p.style.transitionDelay = `${p.getAttribute('data-delay')}s`
-        p.style.opacity = 1
-      })
-  }, 1)
-
-  const branchAnimationDuration = data.length * 0.3
-  const flowerAnimationDuration = (data[data.length - 1].length * 0.01) + 0.2
-  setTimeout(onEnd , (branchAnimationDuration + flowerAnimationDuration) * 1000)
-}
+const cleanSVG = (txt = '') => txt
+  .replace(/<text.*?<\/text>/g, '')
+  .replace(/ class=".+?"/g, '')
+  .replace(/ data-year=".+?"/g, '')
+  .replace(/ stroke-dasharray=".+?"/g, '')
+  .replace(/ stroke-dashoffset=".+?"/g, '')
 
 const Home = ({
   grammar: _grammar,
@@ -111,6 +84,7 @@ const Home = ({
   const [flowerVis, setFlowerVis] = useState(true)
 
   const [paletteId, setPaletteId] = useState(0)
+  const [svg, setSvg] = useState('')
 
   const data = generate(
     grammar,
@@ -121,7 +95,11 @@ const Home = ({
   )
 
   const animationHandlers = {
-    onStart: _ => setAnim(true), onEnd: _ => setAnim(false)
+    onStart: _ => setAnim(true),
+    onEnd: _ => {
+      setAnim(false)
+      unanimate()
+    }
   }
 
   const palette = palettes[paletteId]
@@ -136,6 +114,9 @@ const Home = ({
   }
 
   useEffect(() => animate(data, animationHandlers), [])
+  useEffect(() => {
+    setSvg(cleanSVG(document.getElementById('tree').outerHTML))
+  })
 
   return (
     <>
@@ -147,7 +128,7 @@ const Home = ({
             sup { margin-bottom: 8px; }
             :root {
              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-              --primary: ${getContrast(palette.flower, palette.white) > 2 ? palette.flower : palette.black};
+              --primary: ${readability(palette.flower, palette.white) > 2 ? palette.flower : palette.black};
               --white: ${palette.white};
               --black: ${palette.black};
             }
@@ -239,7 +220,7 @@ const Home = ({
                         >
                           <svg height={26} css={css`padding: 3px`}>
                             <use
-                              fill={(id + 1) === flowerId ? palette.white : (getContrast(palette.flower, palette.white) > 2 ? palette.flower : palette.black)}
+                              fill={(id + 1) === flowerId ? palette.white : (readability(palette.flower, palette.white) > 2 ? palette.flower : palette.black)}
                               href={`flower-${id + 1}.svg/#flower`}
                               width={26}
                               height={26}
@@ -329,15 +310,48 @@ const Home = ({
           </Checkbox>
 
           <br />
+
           <Checkbox
             checked={false}
             onChange={_ => {
-              navigator
-                .clipboard
-                .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`)
+              toast.promise(
+                navigator
+                  .clipboard
+                  .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`),
+                {
+                  loading: 'Planting your unique tree...',
+                  success: 'Your unique tree has been copied to the clipboard!'
+                },
+                {
+                  style: {
+                    success: {
+                      duration: 5000,
+                      icon: '🌴'
+                    },
+                    loading: {
+                      icon: '🌱'
+                    }
+                  }
+                }
+
+              )
             }}
           >
             <IoIosSave />
+          </Checkbox>
+
+          <br />
+
+          <Checkbox
+            aria-label='download-svg'
+            checked={false}
+            onChange={_ => {
+              const h = new Haikunator({ seed: btoa(JSON.stringify(settings)) })
+              download(`${h.haikunate({ tokenLength: 0 })}.svg`, svg)
+              toast(`Preserved your tree forever`)
+            }}
+          >
+            <FiDownload />
           </Checkbox>
 
         </div>
@@ -345,12 +359,17 @@ const Home = ({
         <div css={{ position: 'relative' }}>
           <div
             css={css`
-        .debug path[data-g='a'] { stroke: #ff595e !important; }
-        .debug path[data-g='b'] { stroke: #ffca3a !important; }
-        .debug path[data-g='c'] { stroke: #8ac926 !important; }
-        .debug path[data-g='d'] { stroke: #1982c4 !important; }
-        .debug path[data-g='e'] { stroke: #6a4c93 !important; }
-        `}
+              .debug path[data-g='a'] { stroke: #F94144 !important; }
+              .debug path[data-g='b'] { stroke: #F3722C !important; }
+              .debug path[data-g='c'] { stroke: #F8961E !important; }
+              .debug path[data-g='d'] { stroke: #F9C74F !important; }
+              .debug path[data-g='e'] { stroke: #90BE6D !important; }
+              .debug path[data-g='f'] { stroke: #43AA8B !important; }
+              .debug path[data-g='g'] { stroke: #4D908E !important; }
+              .debug path[data-g='h'] { stroke: #577590 !important; }
+              .debug path[data-g='i'] { stroke: #277DA1 !important; }
+              .debug path[data-g='j'] { stroke: #6a4c93 !important; }
+            `}
             style={{
               position: 'relative',
               overflow: 'hidden',
@@ -380,6 +399,7 @@ const Home = ({
           </div>
 
         </div>
+        <Toaster />
       </PaletteProvider>
     </>
   )

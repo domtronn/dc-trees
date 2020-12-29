@@ -3,7 +3,7 @@ import { jsx } from '@emotion/core'
 
 import { usePalette } from '../utils/palette'
 
-import { lighten } from 'polished'
+import tc from 'tinycolor2'
 
 const Hill = ({
   offset = 0,
@@ -14,7 +14,7 @@ const Hill = ({
   return (
     <path
       style={{ transform: `translateY(${offset}px)` }}
-      fill={lighten(0.1 * layer, palette.grass)}
+      fill={tc(palette.grass).lighten(10 * layer)}
       fillOpacity='1'
       d={d}
     />
