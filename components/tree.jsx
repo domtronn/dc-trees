@@ -80,6 +80,7 @@ export default function Tree ({
         }
 
         {children}
+        <g style={{ '*': { transition: 'none !important' } }} id='falling-leaves' />
       </g>
 
     </svg>

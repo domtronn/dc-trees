@@ -35,10 +35,13 @@ import { MeasureRender } from '../components/measure'
 import Tree from '../components/tree'
 import Flowers from '../components/flowers'
 import Bank from '../components/bank'
+import Wind from '../components/wind'
 
 /** Utils */
 import btoa from 'btoa'
 import atob from 'atob'
+import { rotate } from '../utils/rotate'
+import { cleanSVG } from '../utils/clean-svg'
 import { generate } from '../utils/generate-grammar'
 import { download } from '../utils/download'
 import { animate, unanimate } from '../utils/animation'
@@ -50,13 +53,6 @@ const growthFunctions = {
   exponential: (layers, scale) => (len, layer) => (len * (1 / (layer + 1))) * scale,
   static: (layers, scale) => (len) => len * scale
 }
-
-const cleanSVG = (txt = '') => txt
-  .replace(/<text.*?<\/text>/g, '')
-  .replace(/ class=".+?"/g, '')
-  .replace(/ data-year=".+?"/g, '')
-  .replace(/ stroke-dasharray=".+?"/g, '')
-  .replace(/ stroke-dashoffset=".+?"/g, '')
 
 const Home = ({
   grammar: _grammar,
@@ -79,6 +75,7 @@ const Home = ({
   const [scaleCoef, setScaleCoef] = useState(_scaleCoef)
 
   const [anim, setAnim] = useState(false)
+  const [wind, setWind] = useState(false)
   const [debug, setDebug] = useState(false)
   const [visible, setCardVisible] = useState(false)
   const [flowerVis, setFlowerVis] = useState(true)
@@ -93,6 +90,16 @@ const Home = ({
     [1000, 1000],
     growthFunctions[growth](layers, scaleCoef)
   )
+
+  const [availableLeafPoints] = data
+    .slice(-1)
+    .map((layer, l) => layer.map(({ end }, i) => {
+      return rotate(
+        [end[0], end[1]],
+        [1000, 1000],
+        rotation
+      )
+    }))
 
   const animationHandlers = {
     onStart: _ => setAnim(true),
@@ -113,6 +120,10 @@ const Home = ({
     scaleCoef
   }
 
+  const settingsHash = btoa(JSON.stringify(settings))
+  const h = new Haikunator({ seed: settingsHash, defaults: { tokenLength: 0 } })
+  const haiku = h.haikunate()
+
   useEffect(() => animate(data, animationHandlers), [])
   useEffect(() => {
     setSvg(cleanSVG(document.getElementById('tree').outerHTML))
@@ -125,6 +136,7 @@ const Home = ({
           dangerouslySetInnerHTML={{
             __html: `
             * { transition: all 0.2s ease-in-out; }
+            #falling-leaves circle { transition: none; }
             sup { margin-bottom: 8px; }
             :root {
              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -300,6 +312,12 @@ const Home = ({
           >
             <GoBug />
           </Checkbox>
+          <Checkbox
+            checked={wind}
+            onChange={_ => setWind(!wind)}
+          >
+            <GoBug />
+          </Checkbox>
 
           <br />
           <Checkbox
@@ -317,7 +335,7 @@ const Home = ({
               toast.promise(
                 navigator
                   .clipboard
-                  .writeText(`${window.location.origin}?settings=${btoa(JSON.stringify(settings))}`),
+                  .writeText(`${window.location.origin}?settings=${settingsHash}`),
                 {
                   loading: 'Planting your unique tree...',
                   success: 'Your unique tree has been copied to the clipboard!'
@@ -346,8 +364,7 @@ const Home = ({
             aria-label='download-svg'
             checked={false}
             onChange={_ => {
-              const h = new Haikunator({ seed: btoa(JSON.stringify(settings)) })
-              download(`${h.haikunate({ tokenLength: 0 })}.svg`, svg)
+              download(`${haiku}.svg`, svg)
               toast(`Preserved your tree forever`)
             }}
           >
@@ -376,7 +393,19 @@ const Home = ({
               maxWidth: '100vw'
             }}
           >
+
+            {!anim && (
+              <Wind
+                enabled={wind}
+                width={1690}
+                height={2000}
+                points={availableLeafPoints}
+                rotation={grammar[start].rotation}
+              />
+            )}
+
             <MeasureRender name='tree'>
+
               <Tree
                 data={data}
                 debug={debug}
